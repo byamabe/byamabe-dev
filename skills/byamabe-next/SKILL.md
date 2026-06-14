@@ -27,6 +27,20 @@ accessible, or rely on the workflow knowledge embedded in this skill.
 Check for the following signals in order. Use bash commands and
 file reads — do not guess.
 
+### Setup signals
+
+```
+# Check for git repository
+git rev-parse --git-dir 2>/dev/null && echo "EXISTS: git repo"
+```
+
+```
+# Check for mattpocock/skills setup output — these are written
+# by /setup-matt-pocock-skills and confirm that skill has been run
+ls docs/agents/ 2>/dev/null && echo "EXISTS: docs/agents/"
+ls CLAUDE.md 2>/dev/null && echo "EXISTS: CLAUDE.md"
+```
+
 ### Foundation signals
 
 ```
@@ -40,7 +54,7 @@ ls docs/adr/ 2>/dev/null && echo "EXISTS: docs/adr/"
 
 ```
 # Check git history for key commits
-git log --oneline --all | head -20
+git log --oneline --all 2>/dev/null | head -20
 ```
 
 ```
@@ -91,9 +105,15 @@ Using the signals from Step 2, determine which of the following
 states the project is in. Work through them in order — the first
 one that matches is the current state.
 
-**State 0: Not started**
-Signal: no product-brief.md, no CONTEXT.md, no modules.md,
-no git history beyond an initial commit.
+**State -1: Project not initialized**
+Signal: no git repo, or git repo exists but docs/agents/ and
+CLAUDE.md are both absent, indicating /setup-matt-pocock-skills
+has not been run.
+Position: before Loop 1 — project setup required first.
+
+**State 0: Setup done, product not defined**
+Signal: git repo exists, docs/agents/ exists, CLAUDE.md exists,
+but no product-brief.md.
 Position: beginning of Loop 1, Step 1.
 
 **State 1: Product defined, domain not modeled**
@@ -192,9 +212,11 @@ feature.
 Report in this format:
 
 ---
+
 ## Where you are
 
-**Loop**: {Foundation (Loop 1) | Feature cycle (Loop 2)}
+**Loop**: {Foundation (Loop 1) | Feature cycle (Loop 2) |
+Not yet started}
 **Step**: {step number and name from workflow}
 **How I know**: {two or three sentences describing the specific
 signals that placed you here — what exists, what is missing,
@@ -203,7 +225,7 @@ what the git history shows}
 ## What to do next
 
 **Immediate next action**: {the single most important thing
-to do right now, with the exact skill invocation or action}
+to do right now, with the exact command or skill invocation}
 
 **What it produces**: {what artifact or outcome this step
 creates}
@@ -219,6 +241,33 @@ what might have been skipped and how to recover.}
 
 ---
 
+### State -1 report
+
+If the current state is -1, give the full setup sequence.
+Do not skip steps or assume any of them are already done.
+Say:
+
+"This project is not yet initialized. Before any workflow
+steps can begin, complete the following setup in order:
+
+1. Initialize git if you have not already:
+   git init
+
+2. Install mattpocock/skills:
+   npx skills@latest add mattpocock/skills
+
+3. Run the Pocock setup skill to configure your issue tracker,
+   labels, and CLAUDE.md:
+   /setup-matt-pocock-skills
+
+4. Install byamabe-dev skills (once published):
+   npx skills@latest add byamabe/byamabe-dev
+   Or copy manually until then:
+   cp -r /path/to/byamabe-dev/skills/\* .claude/skills/
+
+5. Once setup is complete, run /byamabe-next again to confirm
+   State 0 and get your first real workflow instruction."
+
 ### PR reminder
 
 If the current state is 10b — all implementation issues closed
@@ -231,7 +280,8 @@ the boundary between implementation and QA, and byamabe-update-
 modules uses the merged PR to scope its exploration. Open a PR
 now before starting QA:
 
-  gh pr create --title \"{feature name}\" --body \"Closes #{issue numbers}\"
+gh pr create --title \"{feature name}\" \
+ --body \"Closes #{issue numbers}\"
 
 Once the PR is open, run manual QA against it. Merge only after
 QA passes."
