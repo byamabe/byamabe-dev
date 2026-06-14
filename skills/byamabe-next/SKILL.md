@@ -68,6 +68,12 @@ gh pr list --state merged --limit 5 \
 ```
 
 ```
+# Check for any open PRs
+gh pr list --state open --limit 5 \
+  --json number,title,draft 2>/dev/null
+```
+
+```
 # Check if modules.md was updated after the last merged PR
 git log --oneline -- modules.md 2>/dev/null | head -1
 git log --oneline -1 2>/dev/null
@@ -143,28 +149,39 @@ to-issues.
 
 **State 10: Feature cycle — implementation in progress**
 Signal: open implementation issues exist, some closed, no
-merged PR yet for this cycle.
+merged PR yet for this cycle and no open PR yet.
 Position: Loop 2, Step 8 — implementation running.
+Note: if all implementation issues are now closed but no PR
+has been opened, flag this prominently — see PR reminder below.
 
-**State 11: Feature cycle — implementation done, QA not done**
-Signal: a QA issue exists and is open, implementation issues
-are closed, no merged PR yet or PR merged but QA issue still
-open.
-Position: Loop 2, Step 9 — manual QA.
+**State 10b: Feature cycle — implementation done, PR not opened**
+Signal: all implementation issues closed, QA issue may or may
+not exist, no open PR and no merged PR for this cycle.
+Position: Loop 2, between Step 8 and Step 9 — PR must be
+opened before QA begins.
 
-**State 12: Feature cycle — QA done, modules not updated**
+**State 11: Feature cycle — PR open, QA not done**
+Signal: an open PR exists for this cycle, QA issue is open.
+Position: Loop 2, Step 9 — manual QA against the open PR.
+
+**State 12: Feature cycle — QA done, PR not merged**
+Signal: QA issue closed, open PR still exists.
+Position: Loop 2 — merge the PR before running
+byamabe-update-modules.
+
+**State 13: Feature cycle — QA done, modules not updated**
 Signal: PR merged, QA issue closed, but modules.md last commit
 predates the merged PR.
 Position: Loop 2, Step 10 — run byamabe-update-modules.
 
-**State 13: Modules updated, architecture review flagged**
+**State 14: Modules updated, architecture review flagged**
 Signal: modules.md updated after last merged PR, but
 byamabe-update-modules output flagged improve-codebase-
 architecture (check recent git commit messages for this signal
 or ask the user if they recall).
 Position: Loop 2, Step 11 — run improve-codebase-architecture.
 
-**State 14: Cycle complete, ready for next feature**
+**State 15: Cycle complete, ready for next feature**
 Signal: modules.md updated after last merged PR, no open
 issues except possibly new ones from QA or the backlog.
 Position: Loop 2, Step 12 then back to Step 1 for next
@@ -202,7 +219,24 @@ what might have been skipped and how to recover.}
 
 ---
 
-Keep the report short and direct. The user is looking for
-a clear next action, not a full workflow explanation.
+### PR reminder
+
+If the current state is 10b — all implementation issues closed
+but no PR opened — make this the most prominent part of the
+report. Do not bury it. Say:
+
+"All implementation issues are closed but no PR has been opened
+for this cycle. Opening a PR is the required next step — it is
+the boundary between implementation and QA, and byamabe-update-
+modules uses the merged PR to scope its exploration. Open a PR
+now before starting QA:
+
+  gh pr create --title \"{feature name}\" --body \"Closes #{issue numbers}\"
+
+Once the PR is open, run manual QA against it. Merge only after
+QA passes."
+
+Keep the overall report short and direct. The user is looking
+for a clear next action, not a full workflow explanation.
 If the state is ambiguous between two possibilities, say so
 and ask one clarifying question to resolve it.

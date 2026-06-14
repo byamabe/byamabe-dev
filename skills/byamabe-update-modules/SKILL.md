@@ -46,9 +46,40 @@ If a merged PR is found, use its file list as the scope.
 Report: "Found merged PR #N: {title}. Scoping exploration to
 {N} files across {modules} modules."
 
-**Method 2: Git log since last modules.md update**
+**Method 2: No merged PR found — stop and ask**
 
-If no merged PR is found, run:
+If no merged PR is found, do not silently fall back. Stop and
+tell the user:
+
+"I could not find a merged PR for this cycle. PRs are the
+preferred boundary between implementation and reconciliation —
+byamabe-update-modules uses the merged PR to scope its
+exploration accurately, and the PR history is valuable signal
+for future agent sessions.
+
+Did you forget to open a PR before running QA? If so, it is
+worth going back and doing this properly:
+
+  1. If your changes are already committed to main, you can
+     create a PR retroactively from a branch:
+       git checkout -b {feature-name}
+       git push origin {feature-name}
+       gh pr create --title \"{feature name}\" \
+         --body \"Closes #{issue numbers}\"
+       gh pr merge --merge
+
+  2. Or if you want to proceed without a PR this once, type
+     'proceed without PR' and I will fall back to git log.
+     Note that this reduces the accuracy of the scope detection."
+
+Wait for the user to respond before continuing.
+
+If the user confirms to proceed without a PR, fall back to
+Method 3.
+
+**Method 3: Git log since last modules.md update (fallback only)**
+
+Run:
 ```
 git log --oneline --name-only
 ```
@@ -56,24 +87,26 @@ git log --oneline --name-only
 Find the most recent commit that touched modules.md. Use all
 files changed in commits since that commit as the scope.
 
-Report: "No merged PR found. Scoping to commits since last
-modules.md update ({commit hash}, {date}): {N} files across
-{modules} modules."
+Report: "Falling back to git log. Scoping to commits since
+last modules.md update ({commit hash}, {date}): {N} files
+across {modules} modules. Note: this is less accurate than
+PR-based scoping."
 
-**Method 3: Full codebase**
+**Method 4: Full codebase**
 
-If modules.md has never been committed, explore the full codebase.
+If modules.md has never been committed, explore the full
+codebase.
 
-Report: "modules.md has no commit history. Treating full codebase
-as in scope."
+Report: "modules.md has no commit history. Treating full
+codebase as in scope."
 
-If scope is ambiguous or seems wrong, stop and ask the user to
-confirm before proceeding.
+If scope is ambiguous or seems wrong, stop and ask the user
+to confirm before proceeding.
 
 ## Step 2: Explore scoped modules
 
-Use the agent tool with subagent_type=Explore scoped to the files
-identified in Step 1.
+Use the agent tool with subagent_type=Explore scoped to the
+files identified in Step 1.
 
 For each module touched by the cycle, gather:
 - What the module actually owns now, based on its current code
@@ -85,44 +118,46 @@ For each module touched by the cycle, gather:
 - Whether any new files appeared that suggest a module boundary
   shifted or a new module emerged
 
-Do not read every file. Read interface files, service entry points,
-index files, and test files. Read internals only when the interface
-does not make ownership clear.
+Do not read every file. Read interface files, service entry
+points, index files, and test files. Read internals only when
+the interface does not make ownership clear.
 
 ## Step 3: Compare against modules.md
 
-Read modules.md in full. For each module in scope, compare what
-you found in Step 2 against its current entry.
+Read modules.md in full. For each module in scope, compare
+what you found in Step 2 against its current entry.
 
 Identify and categorize every discrepancy:
 
-**Ownership drift** — the module owns something its entry does not
-describe, or its entry claims ownership of something that has moved
-elsewhere.
+**Ownership drift** — the module owns something its entry does
+not describe, or its entry claims ownership of something that
+has moved elsewhere.
 
 **Interface drift** — the module's actual public surface differs
-from what modules.md describes. New methods added, old ones removed,
-signatures changed.
+from what modules.md describes. New methods added, old ones
+removed, signatures changed.
 
-**Boundary crossing** — the module is doing something that modules.md
-assigns to a different module. Flag these as higher severity — they
-indicate a design decision was made implicitly during implementation
-that should have been explicit.
+**Boundary crossing** — the module is doing something that
+modules.md assigns to a different module. Flag these as higher
+severity — they indicate a design decision was made implicitly
+during implementation that should have been explicit.
 
-**New module** — files appeared that constitute a meaningful unit of
-ownership not represented in modules.md at all.
+**New module** — files appeared that constitute a meaningful
+unit of ownership not represented in modules.md at all.
 
-**Removed module** — a module in modules.md no longer exists or has
-been absorbed into another.
+**Removed module** — a module in modules.md no longer exists
+or has been absorbed into another.
 
 **Proposed to confirmed** — a module with status: proposed in
-modules.md was actually built. Confirm it with accurate descriptions
-replacing the sketch and update status to confirmed.
+modules.md was actually built. Confirm it with accurate
+descriptions replacing the sketch and update status to
+confirmed.
 
-**Design debt** — something about the current state is worse than
-what modules.md describes or implies. The module is shallower than
-its entry suggests, its interface is leaking implementation details,
-or its test coverage does not match what the entry claims.
+**Design debt** — something about the current state is worse
+than what modules.md describes or implies. The module is
+shallower than its entry suggests, its interface is leaking
+implementation details, or its test coverage does not match
+what the entry claims.
 
 ## Step 4: Present proposed changes
 
@@ -138,20 +173,20 @@ design debt}
 **Severity**: {high | medium | low}
 **Current entry says**: {relevant excerpt from modules.md}
 **Reality is**: {what the code actually shows}
-**Proposed update**: {exact text to replace the current entry with,
-or new entry to add}
-**Uncertainty**: {anything this skill is not confident about and
-why — leave blank if confident}
+**Proposed update**: {exact text to replace the current entry
+with, or new entry to add}
+**Uncertainty**: {anything this skill is not confident about
+and why — leave blank if confident}
 ---
 
 After presenting all proposed changes, show a summary:
 - N changes proposed
-- N boundary crossings flagged (if any — these warrant immediate
-  attention before the next cycle)
+- N boundary crossings flagged (if any — these warrant
+  immediate attention before the next cycle)
 - N items with uncertainty flagged
 
-Then ask: "Do you want to approve all, approve selectively, or
-discuss any of these before I write them?"
+Then ask: "Do you want to approve all, approve selectively,
+or discuss any of these before I write them?"
 
 ## Step 5: Write approved changes
 
@@ -167,20 +202,21 @@ Changes: {one line per change type and module}
 
 ## Step 6: Flag for improve-codebase-architecture
 
-After committing, review the changes written and identify any that
-suggest improve-codebase-architecture from mattpocock/skills should
-be run before the next feature cycle begins:
+After committing, review the changes written and identify any
+that suggest improve-codebase-architecture from mattpocock/skills
+should be run before the next feature cycle begins:
 
 - Any boundary crossing, even if resolved in modules.md
 - Any design debt entry added
 - Any new module that appeared without having been planned in
   grill-ax or a PRD module sketch
-- Any module whose interface grew significantly in ways that suggest
-  it may be accumulating scope
+- Any module whose interface grew significantly in ways that
+  suggest it may be accumulating scope
 
 If any of these are present, tell the user:
-"The following changes suggest running /improve-codebase-architecture
-before the next feature cycle: {list with brief reason for each}."
+"The following changes suggest running /improve-codebase-
+architecture before the next feature cycle: {list with brief
+reason for each}."
 
 If none are present, tell the user:
 "No architectural concerns flagged. modules.md is current.
@@ -193,17 +229,18 @@ during human review in Step 4:
 
 - **Scope too narrow**: the cycle touched a module indirectly
   through a shared dependency that did not appear in the PR diff
-- **Interface description too surface-level**: the skill described
-  the type signatures but missed an important invariant or error
-  mode that callers need to know
-- **Boundary crossing not detected**: the module is doing something
-  that belongs elsewhere but the skill accepted it as intentional
-- **Design debt not flagged**: the module got shallower during the
-  cycle but the skill described it as-is without noting the
-  regression
+- **Interface description too surface-level**: the skill
+  described the type signatures but missed an important
+  invariant or error mode that callers need to know
+- **Boundary crossing not detected**: the module is doing
+  something that belongs elsewhere but the skill accepted it
+  as intentional
+- **Design debt not flagged**: the module got shallower during
+  the cycle but the skill described it as-is without noting
+  the regression
 
 If you catch any of these during review, note what the skill
 missed. Patterns in what it misses are the signal for improving
-this skill's Step 2 exploration instructions or Step 3 comparison
-criteria. Record these observations in the skill/prompt review
-step at the end of the cycle.
+this skill's Step 2 exploration instructions or Step 3
+comparison criteria. Record these observations in the
+skill/prompt review step at the end of the cycle.
