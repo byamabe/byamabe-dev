@@ -209,43 +209,14 @@ feature.
 
 ## Step 4: Report to the user
 
-Report in this format:
-
----
-
-## Where you are
-
-**Loop**: {Foundation (Loop 1) | Feature cycle (Loop 2) |
-Not yet started}
-**Step**: {step number and name from workflow}
-**How I know**: {two or three sentences describing the specific
-signals that placed you here — what exists, what is missing,
-what the git history shows}
-
-## What to do next
-
-**Immediate next action**: {the single most important thing
-to do right now, with the exact command or skill invocation}
-
-**What it produces**: {what artifact or outcome this step
-creates}
-
-**Then after that**: {the step that follows, briefly}
-
-## Anything that looks off
-
-{If any signals are inconsistent — for example, modules.md
-exists but has no confirmed entries despite a pre-commit hook
-being present — flag it here with a brief explanation of
-what might have been skipped and how to recover.}
+Use the exact report template below for each state. Do not
+improvise skill names or next steps — use only the skills and
+actions named here. The skill names in this document are
+authoritative.
 
 ---
 
 ### State -1 report
-
-If the current state is -1, give the full setup sequence.
-Do not skip steps or assume any of them are already done.
-Say:
 
 "This project is not yet initialized. Before any workflow
 steps can begin, complete the following setup in order:
@@ -268,25 +239,403 @@ steps can begin, complete the following setup in order:
 5. Once setup is complete, run /byamabe-next again to confirm
    State 0 and get your first real workflow instruction."
 
+---
+
+### State 0 report
+
+"Setup is complete. You are at the beginning of the foundation
+workflow.
+
+**Where you are**: Loop 1, Step 1 — Product definition
+**How I know**: {two sentences on what exists and what is
+missing}
+
+**Immediate next action**: Run /grill-product
+
+/grill-product is a structured interview skill from byamabe-dev
+that grills you on who the product is for, what problems it
+solves, what capability areas it must cover, and what is
+explicitly out of scope. It produces product-brief.md — the
+anchor document that everything else in the workflow derives
+from.
+
+Do not write product-brief.md yourself. Do not use /to-prd
+or /grill-with-docs. /grill-product is the correct skill for
+this step.
+
+**What it produces**: product-brief.md at the repo root.
+
+**Then after that**: Run /grill-domain to establish the core
+domain vocabulary in CONTEXT.md."
+
+---
+
+### State 1 report
+
+"**Where you are**: Loop 1, Step 2 — Domain modeling
+**How I know**: {two sentences on what exists and what is
+missing}
+
+**Immediate next action**: Run /grill-domain
+
+/grill-domain is a structured interview skill from byamabe-dev
+that grills you on the core concepts of the product's domain —
+what they mean precisely, how they relate to each other, and
+where the boundaries between them are. It reads product-brief.md
+before beginning and works from the vocabulary candidates
+section to seed CONTEXT.md with precise domain definitions.
+
+Do not use /grill-with-docs for this step. /grill-with-docs
+is for feature-cycle grilling sessions, not domain modeling.
+/grill-domain is the correct skill for this step.
+
+**What it produces**: CONTEXT.md with domain vocabulary and
+entity relationships. ADRs for any hard domain modeling
+decisions.
+
+**Then after that**: Run /grill-ax to establish the technical
+foundation."
+
+---
+
+### State 2 report
+
+"**Where you are**: Loop 1, Step 3 — Agent experience
+foundation
+**How I know**: {two sentences on what exists and what is
+missing}
+
+**Immediate next action**: Run /grill-ax
+
+/grill-ax is a structured interview skill from byamabe-dev
+that grills you on technology choices, feedback loops, testing
+strategy, and initial module shape. It reads product-brief.md
+and CONTEXT.md before beginning — all technology decisions are
+anchored to the product and domain established in the previous
+two steps.
+
+**What it produces**: Technical ADRs, structural additions to
+CONTEXT.md, and the initial modules.md with all entries marked
+as proposed.
+
+**Then after that**: Run /to-prd scoped to the AX foundation
+to create the first implementation PRD."
+
+---
+
+### State 3 report
+
+"**Where you are**: Loop 1, Step 4 — AX PRD
+**How I know**: {two sentences on what exists and what is
+missing}
+
+**Immediate next action**: Run /to-prd
+
+This is the only PRD that is not about a user-facing feature.
+Scope it explicitly to: feedback loop setup, technology
+scaffolding, initial module skeleton, and test harness. Tell
+the skill this is the AX foundation PRD so it does not try
+to interview you — it should synthesize directly from the
+grill-ax session context.
+
+**What it produces**: A GitHub issue containing the AX PRD.
+
+**Then after that**: Run /to-issues to break the AX PRD into
+implementation issues."
+
+---
+
+### State 4 report
+
+"**Where you are**: Loop 1, Steps 5-6 — AX implementation
+**How I know**: {two sentences on what exists and what is
+missing}
+
+**Immediate next action**: Run /tdd or let the AFK agent
+work through the open infrastructure issues.
+
+The agent should work through: TypeScript config, test harness,
+pre-commit hooks, initial module skeleton, CI setup. These
+are infrastructure issues, not features — the goal is a
+codebase where feedback loops are deterministically enforced
+before any feature work begins.
+
+**What it produces**: Working codebase with types, tests, and
+pre-commit hooks enforced. Initial module skeleton in place.
+
+**Then after that**: Run /byamabe-update-modules to reconcile
+modules.md against what was actually built, then confirm the
+foundation is complete."
+
+---
+
+### State 5 report
+
+"**Where you are**: Loop 1, Step 6 in progress — AX
+implementation running
+**How I know**: {two sentences on what exists and what is
+missing}
+
+**Immediate next action**: Continue working through the open
+infrastructure issues. Check which issues are still open:
+gh issue list --state open
+
+If the agent has stalled, start a new session and continue
+from where it left off. If you are unsure what is left, run
+/byamabe-next again after completing each issue.
+
+**What it produces**: Completed infrastructure with all AX
+issues closed.
+
+**Then after that**: Run /byamabe-update-modules once all
+issues are closed and the PR is merged."
+
+---
+
+### State 6 report
+
+"**Where you are**: Loop 1, Step 7 — First modules.md
+reconciliation
+**How I know**: {two sentences on what exists and what is
+missing}
+
+**Immediate next action**: Run /byamabe-update-modules
+
+The AX implementation is done but modules.md still contains
+only proposed entries from the grill-ax session. This step
+reconciles those sketches against what was actually built.
+
+**What it produces**: modules.md with confirmed entries
+reflecting the real module structure. This completes the
+foundation.
+
+**Then after that**: The foundation is complete. Run
+/byamabe-next to confirm you are at State 7 and ready to
+begin feature cycles."
+
+---
+
+### State 7 report
+
+"**Where you are**: Beginning of Loop 2 — Foundation complete,
+ready for feature cycles
+**How I know**: {two sentences on what exists and what is
+missing}
+
+The foundation is complete. You have:
+
+- product-brief.md — what the product is
+- CONTEXT.md — the shared domain language
+- modules.md — the current module topology (all confirmed)
+- Pre-commit hooks — deterministic feedback loops enforced
+- ADRs — hard decisions recorded
+
+**Immediate next action**: Run /byamabe-load-modules then
+/grill-with-docs to begin the first feature cycle.
+
+Run /byamabe-load-modules first to load the current module
+topology into context, then /grill-with-docs to begin
+grilling on the first feature.
+
+**What it produces**: Shared understanding of the first
+feature, CONTEXT.md updated, any new ADRs.
+
+**Then after that**: Run /to-prd to synthesize the grilling
+session into a feature PRD."
+
+---
+
+### State 8 report
+
+"**Where you are**: Loop 2, Steps 1-2 — Feature grilling
+**How I know**: {two sentences on what exists and what is
+missing}
+
+**Immediate next action**: Run /byamabe-load-modules then
+/grill-with-docs
+
+/byamabe-load-modules loads modules.md into context so the
+grilling session is aware of existing module boundaries.
+/grill-with-docs then grills on the feature one question at
+a time.
+
+**What it produces**: Shared understanding of the feature,
+CONTEXT.md updated.
+
+**Then after that**: Run /to-prd to synthesize into a PRD."
+
+---
+
+### State 9 report
+
+"**Where you are**: Loop 2, Steps 6-7 — Module boundary
+review then issue breakdown
+**How I know**: {two sentences on what exists and what is
+missing}
+
+**Immediate next action**: Review the PRD module sketch
+against modules.md manually (10 minutes), then run /to-issues
+
+Check: does this feature fit within existing module boundaries?
+Is a new module being proposed? If so, add a draft entry to
+modules.md marked status: proposed before running /to-issues.
+
+**What it produces**: GitHub implementation issues with
+blocking relationships and a QA issue with a manual QA plan.
+
+**Then after that**: Begin implementation via /tdd or AFK
+Sandcastle loop."
+
+---
+
+### State 10 report
+
+"**Where you are**: Loop 2, Step 8 — Implementation in
+progress
+**How I know**: {two sentences on what exists and what is
+missing}
+
+**Immediate next action**: Continue working through open
+implementation issues.
+
+Check open issues:
+gh issue list --state open
+
+When all implementation issues are closed, open a PR
+immediately before starting QA:
+gh pr create --title \"{feature name}\" \
+ --body \"Closes #{issue numbers}\"
+
+**What it produces**: Completed implementation, PR ready
+for QA.
+
+**Then after that**: Manual QA against the open PR."
+
+---
+
+### State 10b report
+
+"All implementation issues are closed but no PR has been
+opened for this cycle. Opening a PR is the required next
+step — it is the boundary between implementation and QA,
+and /byamabe-update-modules uses the merged PR to scope
+its exploration.
+
+**Immediate next action**: Open a PR now before starting QA:
+gh pr create --title \"{feature name}\" \
+ --body \"Closes #{issue numbers}\"
+
+**Then after that**: Run manual QA against the open PR.
+Merge only after QA passes."
+
+---
+
+### State 11 report
+
+"**Where you are**: Loop 2, Step 9 — Manual QA
+**How I know**: {two sentences on what exists and what is
+missing}
+
+**Immediate next action**: Work through the QA issue manually.
+
+Find the QA issue:
+gh issue list --state open
+
+Work through each item in the QA plan. File new issues for
+anything that fails — those re-enter the backlog. When all
+QA items pass, close the QA issue.
+
+**What it produces**: Confirmed working feature, QA issue
+closed.
+
+**Then after that**: Merge the PR, then run
+/byamabe-update-modules."
+
+---
+
+### State 12 report
+
+"**Where you are**: Loop 2 — QA done, PR not yet merged
+**How I know**: {two sentences on what exists and what is
+missing}
+
+**Immediate next action**: Merge the PR
+gh pr merge --merge
+
+Do not run /byamabe-update-modules until the PR is merged —
+it uses the merged PR to scope its exploration.
+
+**Then after that**: Run /byamabe-update-modules."
+
+---
+
+### State 13 report
+
+"**Where you are**: Loop 2, Step 10 — Module reconciliation
+**How I know**: {two sentences on what exists and what is
+missing}
+
+**Immediate next action**: Run /byamabe-update-modules
+
+This reconciles modules.md against what was actually built
+in the cycle. It will scope its exploration to the merged PR,
+propose changes for your review, and flag if
+/improve-codebase-architecture should run before the next
+cycle.
+
+**What it produces**: modules.md updated and committed.
+
+**Then after that**: Run /byamabe-next to confirm the cycle
+is complete or to check if architecture review is needed."
+
+---
+
+### State 14 report
+
+"**Where you are**: Loop 2, Step 11 — Architecture review
+flagged
+**How I know**: {two sentences on what exists and what is
+missing}
+
+**Immediate next action**: Run /improve-codebase-architecture
+
+/byamabe-update-modules flagged architectural concerns from
+the last cycle. Run /improve-codebase-architecture before
+starting the next feature to prevent technical debt from
+compounding.
+
+**What it produces**: Refactor RFCs as GitHub issues entering
+the backlog.
+
+**Then after that**: Run /byamabe-next to confirm you are at
+State 15 and ready for the next feature cycle."
+
+---
+
+### State 15 report
+
+"**Where you are**: Loop 2, Step 12 — Cycle complete
+**How I know**: {two sentences on what exists and what is
+missing}
+
+The feature cycle is complete. modules.md is current, the
+PR is merged, QA passed, no architecture concerns flagged.
+
+**Immediate next action**: Review whether any skills need
+updating based on what you learned in this cycle. Patterns
+in what /byamabe-update-modules missed are the primary signal.
+
+**Then after that**: Run /byamabe-load-modules then
+/grill-with-docs to begin the next feature cycle."
+
+---
+
 ### PR reminder
 
 If the current state is 10b — all implementation issues closed
 but no PR opened — make this the most prominent part of the
-report. Do not bury it. Say:
+report. Do not bury it. Use the State 10b report above.
 
-"All implementation issues are closed but no PR has been opened
-for this cycle. Opening a PR is the required next step — it is
-the boundary between implementation and QA, and byamabe-update-
-modules uses the merged PR to scope its exploration. Open a PR
-now before starting QA:
-
-gh pr create --title \"{feature name}\" \
- --body \"Closes #{issue numbers}\"
-
-Once the PR is open, run manual QA against it. Merge only after
-QA passes."
-
-Keep the overall report short and direct. The user is looking
-for a clear next action, not a full workflow explanation.
+Keep reports short and direct. Never improvise skill names.
 If the state is ambiguous between two possibilities, say so
 and ask one clarifying question to resolve it.
