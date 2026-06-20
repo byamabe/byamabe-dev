@@ -129,14 +129,22 @@ Position: Loop 1, Step 3.
 
 **State 3: AX grilled, AX PRD not created**
 Signal: modules.md exists with all entries marked "proposed",
-no open GitHub issues that are infrastructure-related, no
-pre-commit hook.
+no open GitHub issues at all, no pre-commit hook.
 Position: Loop 1, Step 4.
 
-**State 4: AX PRD created, implementation not started**
-Signal: open GitHub issues exist that are infrastructure-related
-(TypeScript config, test harness, pre-commit hooks, module
-skeleton), no pre-commit hook yet, modules.md all proposed.
+**State 3b: AX PRD created, not yet broken into issues**
+Signal: modules.md exists with all entries marked "proposed",
+exactly one open GitHub issue exists that is the AX PRD (large
+body, title contains "foundation"/"scaffold", or has the
+ready-for-agent label), no broken-out implementation issues
+yet, no pre-commit hook.
+Position: Loop 1, Step 5 — break PRD into implementation issues.
+
+**State 4: AX PRD broken into issues, implementation not started**
+Signal: multiple open GitHub issues exist that are infrastructure-
+related (TypeScript config, test harness, pre-commit hooks, module
+skeleton) — distinct from the PRD issue itself — no pre-commit
+hook yet, modules.md all proposed.
 Position: Loop 1, Steps 5-6.
 
 **State 5: AX implementation in progress**
@@ -342,6 +350,33 @@ grill-ax session context.
 
 **Then after that**: Run /to-issues to break the AX PRD into
 implementation issues."
+
+---
+
+### State 3b report
+
+"**Where you are**: Loop 1, Step 5 — AX issue breakdown
+**How I know**: {two sentences on what exists and what is
+missing}
+
+**Immediate next action**: Run /to-issues against the AX
+Foundation PRD.
+
+Point /to-issues at the open AX PRD issue. It will break
+the PRD into discrete implementation issues with blocking
+relationships — TypeScript config, Neon database setup,
+module skeletons, test harness, CI workflow, and pre-commit
+hook.
+
+Do not start implementing yet. Do not run /tdd yet. The
+implementation issues must exist before the agent can work
+through them systematically.
+
+**What it produces**: GitHub implementation issues for the
+AX foundation, each scoped to a discrete deliverable.
+
+**Then after that**: Run /tdd or let the AFK agent work
+through the open infrastructure issues."
 
 ---
 
