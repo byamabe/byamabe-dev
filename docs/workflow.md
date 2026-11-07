@@ -59,10 +59,13 @@ This is step 2 of 3 in the foundation workflow.
 
 ### Step 3: `/grill-ax` [byamabe-dev]
 
-Input: product-brief.md, CONTEXT.md, and CONTEXT-MAP.md if it
-exists (all read before beginning)
-Output: technical ADRs, structural additions to CONTEXT.md,
-initial modules.md with entries marked "proposed"
+Input: product-brief.md, CONTEXT.md, CONTEXT-MAP.md if it exists,
+and the project's architecture decision record if one exists (all
+read before beginning; settled choices in the record are given, not
+re-grilled)
+Output: technical ADRs for decisions the record does not already
+hold, structural additions to CONTEXT.md, initial modules.md with
+entries marked "proposed"
 
 Grills on four areas in order:
 1. Technology choices — anchored to product capability areas

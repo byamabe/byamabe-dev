@@ -82,6 +82,12 @@ context. Only split when a term genuinely carries conflicting meaning
 that cannot be resolved by renaming — not just because different
 parts of the product use a concept differently.
 
+Count contexts by product domains, not by repository layout. A
+monorepo's workspaces (an app, a marketing site, a video project)
+are deployment units, not bounded contexts. A marketing site speaks
+the product's vocabulary to prospective users; it does not make the
+domain multi-context.
+
 If bounded contexts are identified, establish:
 - What is the name and scope of each context
 - What terms each context owns exclusively

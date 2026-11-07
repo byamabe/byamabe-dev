@@ -21,6 +21,15 @@ Before beginning, read the following in order:
    not technical convenience.
 3. CONTEXT-MAP.md if it exists — if the domain has bounded contexts,
    module shape should respect those context boundaries.
+4. The project's architecture decision record, if one exists — an
+   architecture doc or provider decisions doc, usually linked from
+   CLAUDE.md. A project keeps one canonical record of these
+   decisions. Choices it marks as settled are given: do not grill
+   them again. Confirm them in one pass, then grill only the gaps
+   and anything it leaves open or staged. If the session's
+   conclusions contradict the record, surface the conflict to the
+   user rather than overriding it, and tell them which entries the
+   record needs updated.
 
 There is no codebase to explore yet. Do not attempt to explore one.
 There are no features to discuss. Do not raise them.
@@ -173,6 +182,12 @@ Use ADR-FORMAT.md from mattpocock/skills
 rejected alternatives — they are often more valuable than the
 choice itself, because they prevent the same conversation from
 recurring in every future session.
+
+If the project has an architecture decision record (see "Before
+beginning"), do not write ADRs that restate decisions already in
+it. Two records of the same decision drift apart. ADRs cover
+decisions made in this session that the record does not hold; an
+ADR that depends on a decision in the record links to it.
 
 ### Do not raise features
 
