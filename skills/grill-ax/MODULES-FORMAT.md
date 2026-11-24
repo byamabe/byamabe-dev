@@ -113,7 +113,7 @@ modules:
 | `source_roots` | yes | Directories that contain code. Files outside them are never "unmapped". |
 | `ignore` | no | Globs excluded from every check (tests, generated code, type declarations). |
 | `tsconfig` | no | tsconfig used to resolve imports. Default: the nearest `tsconfig.json`, else bundler resolution, which follows `package.json` `imports` (`#alias/*`). Point it at a generated config (such as Nuxt's `.nuxt/tsconfig.json`) only if that file exists when the review runs. |
-| `shared` | no | Module names every module may depend on without listing them. Use sparingly: each entry is a boundary you've chosen not to check. |
+| `shared` | no | Module names every module may depend on without listing them. Use sparingly: each entry is a boundary you've chosen not to check. A shared module may depend only on other shared modules, so no cycle can run through it unseen; it's a foundation, not a peer. Its `public_exports` are still checked. |
 | `name` | yes | Module name, identical to its `###` heading in the prose. |
 | `status` | yes | `proposed` or `confirmed`, identical to the prose **Status**. |
 | `paths` | yes | Globs, relative to the project root, for the files this module owns. A file must match at most one module. A proposed module may have paths with no files yet. |
