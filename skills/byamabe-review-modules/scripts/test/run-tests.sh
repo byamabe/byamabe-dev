@@ -45,6 +45,12 @@ check "entry list accepted (1 bypass left)" '[[ $code -eq 0 && $(count entry_byp
 fresh; sed -i 's#^shared: \[schema\]#tsconfig: missing/tsconfig.json\nshared: [schema]#' "$work/p/modules.md"; run
 check "missing tsconfig refused (exit 2)"   '[[ $code -eq 2 ]] && grep -q "tsconfig" "$work/err"'
 
+fresh; sed -i 's/^shared: \[schema\]/shared: [schema, Corpus]/' "$work/p/modules.md"; sed -i '/name: schema/,/public_exports/ s/may_depend_on: \[\]/may_depend_on: [UI]/' "$work/p/modules.md"; run
+check "shared module depending upward refused (exit 2)" '[[ $code -eq 2 ]] && grep -q "schema is shared" "$work/err"'
+
+fresh; sed -i 's/^shared: \[schema\]/shared: [schema, Corpus]/' "$work/p/modules.md"; run --out "$work/r.json"
+check "shared Corpus: UI edge allowed, surface still checked" '[[ $code -eq 0 && $(count boundary) -eq 0 && $(count surface) -eq 1 ]]'
+
 fresh; sed -i "s/^source_roots:/# OBSERVED DRAFT\nsource_roots:/" "$work/p/modules.md"; run
 check "observed draft refused (exit 2)"     '[[ $code -eq 2 ]] && grep -q "OBSERVED DRAFT" "$work/err"'
 

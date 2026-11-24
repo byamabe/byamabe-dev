@@ -87,6 +87,14 @@ function readMap() {
     for (const d of m.may_depend_on ?? []) if (!names.has(d)) errors.push(`${m.name}: may_depend_on names unknown module "${d}".`);
   }
   for (const s of map.shared) if (!names.has(s)) errors.push(`shared names unknown module "${s}".`);
+  // A shared module's incoming edges are never checked, so it must not
+  // depend on anything that isn't itself shared. Otherwise a cycle
+  // through it would disappear from the review.
+  for (const m of map.modules) {
+    if (!map.shared.includes(m.name)) continue;
+    const upward = (m.may_depend_on ?? []).filter((d) => !map.shared.includes(d));
+    if (upward.length) errors.push(`${m.name} is shared, so it may depend only on other shared modules; remove ${upward.join(", ")} from its may_depend_on (its imports of them are then reported as boundary violations).`);
+  }
   if (errors.length) throw new MapError(errors.join("\n"));
   return { map, md };
 }
