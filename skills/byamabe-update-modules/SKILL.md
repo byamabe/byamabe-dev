@@ -79,7 +79,8 @@ worth going back and doing this properly:
        git push origin {feature-name}
        gh pr create --title \"{feature name}\" \
          --body \"Closes #{issue numbers}\"
-       gh pr merge --merge
+     Then merge it with a method the repo allows: gh pr merge
+     --squash, --merge, or --rebase.
 
   2. Or if you want to proceed without a PR this once, type
      'proceed without PR' and I will fall back to git log.

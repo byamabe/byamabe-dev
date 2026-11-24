@@ -196,9 +196,10 @@ Time: 10 minutes.
 ### Step 7: `/to-tickets` [Pocock]
 
 Breaks the spec into independently-grabbable vertical slice issues
-with blocking relationships. Every cycle ends with a QA issue
-containing a manual QA plan. Human-in-the-loop vs AFK designation
-happens here.
+with blocking relationships. It doesn't create a QA issue on its own:
+when it shows the breakdown, ask for a final QA ticket holding a
+manual QA plan, blocked by all the others and labeled
+ready-for-human. Human-in-the-loop vs AFK designation happens here.
 
 Output: GitHub issues ready for the backlog.
 
@@ -207,6 +208,12 @@ Output: GitHub issues ready for the backlog.
 `/implement` per ticket in a fresh context, or `/implement-spec`
 to build the whole spec in one run. Either way `/tdd` drives each
 slice and `/code-review` closes it out.
+
+`/implement-spec` puts every ticket on one integration branch with at
+most one PR. Don't use it in a project that requires one PR per
+ticket. There, claim each ticket the way the project's docs say, then
+run `/implement` on the claimed branch: it commits to whatever branch
+is current and claims nothing.
 
 Agent picks up issues using task selection priority:
 1. Critical bug fixes
@@ -226,7 +233,9 @@ Each issue closes with a commit. Cycle closes with a merged PR.
 
 ### Step 9: Manual QA [human]
 
-Work through the QA issue. File new issues for anything that fails.
+Work through the QA issue, or, if there is none, the spec's user
+stories and the tickets' acceptance criteria. File new issues for
+anything that fails.
 Failed issues re-enter the backlog.
 
 ### Step 10: `/byamabe-update-modules` [byamabe-dev]
@@ -244,7 +253,9 @@ Must complete before the next grill-with-docs session begins.
 Run when byamabe-update-modules flags boundary crossings, design
 debt, unplanned new modules, or significant interface growth.
 
-Output: refactor RFCs as GitHub issues entering the backlog.
+Output: a local HTML report of candidate refactors, then a grilling
+session on the one you pick. It files no issues: run `/to-tickets` at
+the end to put a refactor in the backlog.
 
 ### Step 12: Skill and prompt review [human]
 
@@ -285,5 +296,5 @@ environment it enters is more precisely described:
 | Prototype code | Temporary | /prototype | During session | Kept on a throwaway branch, never merged to main |
 | Spec (GitHub issue) | Disposable | to-spec | Not updated | Closed after implementation |
 | Implementation issues | Disposable | to-tickets | Agent comments during work | Closed after implementation |
-| QA issue | Disposable | to-tickets | Developer during QA | Closed after QA passes |
-| Refactor RFCs | Disposable | improve-codebase-architecture | Not updated | Closed after refactor |
+| QA issue | Disposable | to-tickets, when asked | Developer during QA | Closed after QA passes |
+| Architecture report (HTML) | Temporary | improve-codebase-architecture | Not updated | Left in the OS temp directory |

@@ -4,7 +4,9 @@
 #   1. an upstream slash command or file path used in our docs but
 #      not declared in scripts/upstream-refs.txt,
 #   2. a declared skill or file missing (or deprecated) upstream,
-#   3. a retired upstream name still used in our docs.
+#   3. a retired upstream name still used in our docs,
+#   4. a bare file name like FORMAT.md in our docs that is neither
+#      declared, ours, nor one the skills write in a project.
 #
 # Usage: scripts/check-upstream-refs.sh [path-to-upstream-checkout]
 # Without a path, clones the pinned ref into a temp directory.
@@ -22,9 +24,18 @@ retired_pattern='CONTEXT\.md|CONTEXT-MAP\.md|CONTEXT-FORMAT\.md|/to-prd|to-prd |
 # Slash-prefixed tokens in our docs that are not skills.
 not_skills='path'
 
+# Upper-case file names that live in the project being worked on.
+project_files='GLOSSARY.md
+GLOSSARY-MAP.md
+CLAUDE.md
+AGENTS.md
+YYYY-MM-DD.md'
+
 # Tracked markdown only: installed dependencies and test fixtures are
 # not documentation.
-mapfile -t docs < <(git ls-files -- 'README.md' 'docs/*.md' 'skills/*.md' | grep -v '/test/fixture/')
+# A read loop, not mapfile: macOS ships bash 3.2.
+docs=()
+while IFS= read -r doc; do docs+=("$doc"); done < <(git ls-files -- 'README.md' 'docs/*.md' 'skills/*.md' | grep -v '/test/fixture/')
 fail=0
 err() { echo "FAIL: $*"; fail=1; }
 
@@ -44,6 +55,20 @@ done
 used_files="$(grep -rhoE 'skills/(engineering|productivity|misc|in-progress)/[a-z0-9-]+/[A-Za-z0-9_.-]+\.md' "${docs[@]}" | sort -u || true)"
 for path in $used_files; do
   grep -qx "$path" <<<"$declared_files" || err "$path is used but not declared in $refs_file"
+done
+
+# --- 4. Bare file names -------------------------------------------------
+# Catches "see FORMAT.md in that skill", which names no path. Lines
+# containing "legacy" are exempt, as below.
+own_files="$(git ls-files -- '*.md' | sed 's#.*/##' | sort -u)"
+declared_names="$(sed 's#.*/##' <<<"$declared_files" | sort -u)"
+used_names="$(grep -hvi legacy "${docs[@]}" \
+  | grep -oE '(^|[^A-Za-z0-9_.-])[A-Z][A-Z-]+\.md' | sed -E 's#^[^A-Z]##' | sort -u || true)"
+for name in $used_names; do
+  grep -qxF "$name" <<<"$project_files" && continue
+  grep -qxF "$name" <<<"$own_files" && continue
+  grep -qxF "$name" <<<"$declared_names" && continue
+  err "$name is used but is not declared in $refs_file, ours, or a project file"
 done
 
 # --- 3. Retired names ---------------------------------------------------

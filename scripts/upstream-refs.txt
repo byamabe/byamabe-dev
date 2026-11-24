@@ -16,10 +16,12 @@ skill:implement-spec
 skill:tdd
 skill:code-review
 skill:improve-codebase-architecture
+skill:codebase-design
 skill:handoff
 skill:setup-pre-commit
 skill:research
 skill:prototype
 
+file:skills/engineering/codebase-design/SKILL.md
 file:skills/engineering/domain-modeling/GLOSSARY-FORMAT.md
 file:skills/engineering/domain-modeling/ADR-FORMAT.md

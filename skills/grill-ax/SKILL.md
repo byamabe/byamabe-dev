@@ -88,8 +88,8 @@ Grill on: what gets tested at what level, what gets mocked versus
 hit for real, what a passing CI means for this project.
 
 Resolve this before module shape. The testing strategy constrains
-where module seams should be drawn — a module boundary is only
-meaningful if it is also a test boundary.
+where module seams should be drawn — a module's interface is only
+meaningful if it is also the test surface.
 
 Key questions to resolve:
 - Where are the integration seams? What is the minimal set of
@@ -110,10 +110,11 @@ Key questions to resolve:
 Grill on: what are the major load-bearing pieces of this system,
 what does each own, and where are the seams between them.
 
-The vocabulary below is consistent with improve-codebase-architecture
-from mattpocock/skills (see LANGUAGE.md in that skill). If any
-conflict exists between this skill and that document, LANGUAGE.md
-takes precedence.
+The vocabulary below summarizes /codebase-design from mattpocock/skills
+(skills/engineering/codebase-design/SKILL.md), which
+/improve-codebase-architecture also uses. If any conflict exists
+between this skill and that document, that document takes
+precedence.
 
 - **Module** — anything with an interface and an implementation
 - **Interface** — everything a caller must know to use the module:
@@ -124,6 +125,11 @@ takes precedence.
   has an interface nearly as complex as its implementation.
 - **Seam** — where an interface lives; a place behaviour can be
   altered without editing the caller
+- **Adapter** — a concrete thing that satisfies an interface at a seam
+- **Leverage** — what callers get from depth: more capability per unit
+  of interface they learn
+- **Locality** — what maintainers get from depth: change, bugs, and
+  knowledge concentrate in one place
 
 For each proposed module:
 - What does it own? Be specific.
