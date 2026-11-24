@@ -44,8 +44,8 @@ This is step 1 of 3 in the foundation workflow.
 ### Step 2: `/grill-domain` [byamabe-dev]
 
 Input: product-brief.md (read before beginning)
-Output: CONTEXT.md seeded with domain vocabulary, ADRs for hard
-domain modeling decisions. CONTEXT-MAP.md if bounded contexts
+Output: GLOSSARY.md seeded with domain vocabulary, ADRs for hard
+domain modeling decisions. GLOSSARY-MAP.md if bounded contexts
 are identified.
 
 Grills on: precise definitions of core concepts, relationships
@@ -59,12 +59,12 @@ This is step 2 of 3 in the foundation workflow.
 
 ### Step 3: `/grill-ax` [byamabe-dev]
 
-Input: product-brief.md, CONTEXT.md, CONTEXT-MAP.md if it exists,
+Input: product-brief.md, GLOSSARY.md, GLOSSARY-MAP.md if it exists,
 and the project's architecture decision record if one exists (all
 read before beginning; settled choices in the record are given, not
 re-grilled)
 Output: technical ADRs for decisions the record does not already
-hold, structural additions to CONTEXT.md, initial modules.md with
+hold, structural additions to GLOSSARY.md, initial modules.md with
 entries marked "proposed"
 
 Grills on four areas in order:
@@ -72,32 +72,34 @@ Grills on four areas in order:
 2. Feedback loops — type checking, formatter, pre-commit hooks, CI
 3. Testing strategy — seams, mocking policy, test database approach
 4. Initial module shape — using deep module vocabulary, anchored
-   to domain concepts from CONTEXT.md and bounded context
-   boundaries from CONTEXT-MAP.md if present
+   to domain concepts from GLOSSARY.md and bounded context
+   boundaries from GLOSSARY-MAP.md if present
 
 This is step 3 of 3 in the foundation workflow.
 
-### Step 4: AX PRD via `/to-prd` [Pocock]
+### Step 4: AX spec via `/to-spec` [Pocock]
 
-Synthesizes the grill-ax session into a PRD covering: feedback
+Synthesizes the grill-ax session into a spec covering: feedback
 loop setup, technology scaffolding, initial module skeleton, test
-harness. The only PRD that is not about a user-facing feature.
+harness. The only spec that is not about a user-facing feature.
 
-Output: GitHub issue containing the AX PRD.
+Output: GitHub issue containing the AX spec.
 
-### Step 5: `/to-issues` [Pocock]
+### Step 5: `/to-tickets` [Pocock]
 
-Breaks the AX PRD into vertical-slice implementation issues with
+Breaks the AX spec into vertical-slice implementation issues with
 blocking relationships. These are infrastructure issues: TypeScript
 config, test harness, pre-commit hooks, initial module files with
 empty interfaces, CI setup.
 
 Output: GitHub issues ready for implementation.
 
-### Step 6: `/tdd` implementation [Pocock]
+### Step 6: `/implement` per ticket [Pocock]
 
-Agent works through AX issues. `/setup-pre-commit` runs here if
-not already handled in the AX PRD.
+Agent works through AX tickets with `/implement`, one ticket per
+fresh context. `/implement` drives `/tdd` and closes each ticket
+with `/code-review`. `/setup-pre-commit` runs here if
+not already handled in the AX spec.
 
 Output: working codebase with feedback loops enforced, initial
 module skeleton in place, passing CI.
@@ -115,8 +117,8 @@ Trigger: after Step 6 PR is merged.
 
 Foundation is now complete. The repo has:
 - product-brief.md — what the product is
-- CONTEXT.md — the shared language
-- CONTEXT-MAP.md — bounded context map (if applicable)
+- GLOSSARY.md — the shared language
+- GLOSSARY-MAP.md — bounded context map (if applicable)
 - modules.md — the current module topology
 - ADRs — hard decisions and their rationale
 - Working feedback loops — types, tests, pre-commit hooks
@@ -135,44 +137,52 @@ the feature may touch module boundaries.
 
 ### Step 2: `/grill-with-docs` [Pocock]
 
-Input: CONTEXT.md, modules.md (loaded via Step 1), existing ADRs
-Output: shared understanding of the feature, CONTEXT.md updated,
+Input: GLOSSARY.md, modules.md (loaded via Step 1), existing ADRs
+Output: shared understanding of the feature, GLOSSARY.md updated,
 new ADRs if decisions meet the three-condition filter
 
-Grills on the feature one question at a time. Challenges against
+Grills on the feature in rounds: each round asks every question
+whose prerequisites are settled, with a recommended answer, and
+waits for your replies. Challenges against
 existing domain language. Cross-references with code. Surfaces
 conflicts with existing module boundaries rather than making
 silent assumptions.
 
-### Step 3: Research [Pocock] (when needed)
+### Step 3: `/research` [Pocock] (when needed)
 
 Run when the feature requires an external service, unfamiliar
 library, or architectural option that needs comparison before
 committing.
 
-Output: temporary research.md in docs/ or plans/
+Runs as a background agent against primary sources.
+
+Output: one cited Markdown file, saved where the repo keeps such
+notes (use plans/research-*.md so /byamabe-next detects it)
 Lifecycle: deleted after the implementation cycle that consumes it.
 
-### Step 4: Prototype [Pocock] (when needed)
+### Step 4: `/prototype` [Pocock] (when needed)
 
 Run when the feature has significant unknown unknowns — particularly
 around UI design or a new external integration.
 
-Output: throwaway prototype on a dev-only route.
-Lifecycle: promoted into real implementation or deleted.
+Output: throwaway prototype. A UI question gets variations on one
+route; a logic or state question gets a single HTML file.
+Lifecycle: fold the validated decision into the real code, commit
+the prototype to a throwaway branch out of main, and link that
+branch from the implementation issue.
 
-### Step 5: `/to-prd` [Pocock]
+### Step 5: `/to-spec` [Pocock]
 
-Synthesizes the grilling session into a PRD. Does not interview —
-synthesizes. The module sketch step inside to-prd compares against
-modules.md to identify which existing modules are being modified
-and whether any new ones are being proposed.
+Synthesizes the grilling session into a spec. Does not interview —
+synthesizes. /to-spec sketches the test seams for the feature and
+checks them with you; it no longer produces a module sketch, so
+the comparison against modules.md happens in Step 6.
 
-Output: GitHub issue containing the PRD.
+Output: GitHub issue containing the spec.
 
 ### Step 6: Module boundary review [human]
 
-Brief checkpoint before breaking the PRD into issues.
+Brief checkpoint before breaking the spec into issues.
 
 Questions to answer:
 - Does this feature fit within existing module boundaries?
@@ -183,9 +193,9 @@ Questions to answer:
 
 Time: 10 minutes.
 
-### Step 7: `/to-issues` [Pocock]
+### Step 7: `/to-tickets` [Pocock]
 
-Breaks the PRD into independently-grabbable vertical slice issues
+Breaks the spec into independently-grabbable vertical slice issues
 with blocking relationships. Every cycle ends with a QA issue
 containing a manual QA plan. Human-in-the-loop vs AFK designation
 happens here.
@@ -193,6 +203,10 @@ happens here.
 Output: GitHub issues ready for the backlog.
 
 ### Step 8: Implementation [Pocock]
+
+`/implement` per ticket in a fresh context, or `/implement-spec`
+to build the whole spec in one run. Either way `/tdd` drives each
+slice and `/code-review` closes it out.
 
 Agent picks up issues using task selection priority:
 1. Critical bug fixes
@@ -247,8 +261,8 @@ than the last — not because the agent has memory, but because the
 environment it enters is more precisely described:
 
 - product-brief.md — every feature is implicitly checked against it
-- CONTEXT.md — gets sharper each session as vocabulary is refined
-- CONTEXT-MAP.md — bounded context boundaries stay stable
+- GLOSSARY.md — gets sharper each session as vocabulary is refined
+- GLOSSARY-MAP.md — bounded context boundaries stay stable
 - modules.md — stays current as the topology evolves
 - ADRs — prevent relitigating settled decisions
 - Pre-commit hooks — deterministically enforce quality
@@ -263,13 +277,13 @@ environment it enters is more precisely described:
 | Artifact | Type | Created | Updated | Deleted |
 |---|---|---|---|---|
 | product-brief.md | Standing, in-place | grill-product | Human when product changes | Never |
-| CONTEXT.md | Standing, in-place | grill-domain | grill-with-docs each session | Never |
-| CONTEXT-MAP.md | Standing, in-place | grill-domain (if bounded contexts exist) | grill-domain on rerun | Never |
+| GLOSSARY.md | Standing, in-place | grill-domain | grill-with-docs each session | Never |
+| GLOSSARY-MAP.md | Standing, in-place | grill-domain (if bounded contexts exist) | grill-domain on rerun | Never |
 | ADRs | Append-only | grill-domain, grill-ax, grill-with-docs | Never | Never |
 | modules.md | Standing, in-place | grill-ax | byamabe-update-modules post-cycle | Never |
 | research.md | Temporary | Research session | Not updated | After consuming cycle |
-| Prototype code | Temporary | Prototype session | During session | After promoting or abandoning |
-| PRD (GitHub issue) | Disposable | to-prd | Not updated | Closed after implementation |
-| Implementation issues | Disposable | to-issues | Agent comments during work | Closed after implementation |
-| QA issue | Disposable | to-issues | Developer during QA | Closed after QA passes |
+| Prototype code | Temporary | /prototype | During session | Kept on a throwaway branch, never merged to main |
+| Spec (GitHub issue) | Disposable | to-spec | Not updated | Closed after implementation |
+| Implementation issues | Disposable | to-tickets | Agent comments during work | Closed after implementation |
+| QA issue | Disposable | to-tickets | Developer during QA | Closed after QA passes |
 | Refactor RFCs | Disposable | improve-codebase-architecture | Not updated | Closed after refactor |

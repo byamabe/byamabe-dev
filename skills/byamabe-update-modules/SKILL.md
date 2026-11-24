@@ -209,7 +209,7 @@ should be run before the next feature cycle begins:
 - Any boundary crossing, even if resolved in modules.md
 - Any design debt entry added
 - Any new module that appeared without having been planned in
-  grill-ax or a PRD module sketch
+  grill-ax or proposed during the spec boundary review
 - Any module whose interface grew significantly in ways that
   suggest it may be accumulating scope
 

@@ -46,8 +46,9 @@ ls CLAUDE.md 2>/dev/null && echo "EXISTS: CLAUDE.md"
 ```
 # Check for standing documents
 ls product-brief.md 2>/dev/null && echo "EXISTS: product-brief.md"
-ls CONTEXT.md 2>/dev/null && echo "EXISTS: CONTEXT.md"
-ls CONTEXT-MAP.md 2>/dev/null && echo "EXISTS: CONTEXT-MAP.md"
+ls GLOSSARY.md 2>/dev/null && echo "EXISTS: GLOSSARY.md"
+ls GLOSSARY-MAP.md 2>/dev/null && echo "EXISTS: GLOSSARY-MAP.md"
+ls CONTEXT.md CONTEXT-MAP.md 2>/dev/null && echo "LEGACY: CONTEXT.md naming"
 ls modules.md 2>/dev/null && echo "EXISTS: modules.md"
 ls docs/adr/ 2>/dev/null && echo "EXISTS: docs/adr/"
 ```
@@ -105,6 +106,15 @@ Using the signals from Step 2, determine which of the following
 states the project is in. Work through them in order — the first
 one that matches is the current state.
 
+**Before matching any state:** if the LEGACY signal fired, stop.
+mattpocock/skills renamed the domain glossary. Its skills no longer
+read the legacy names (legacy CONTEXT.md and CONTEXT-MAP.md), so
+the domain vocabulary is being silently skipped. Tell the user to
+rename each legacy file (`git mv CONTEXT.md GLOSSARY.md`, likewise
+for legacy CONTEXT-MAP.md and any per-context legacy CONTEXT.md),
+commit, and run /byamabe-next again. Do not report a workflow
+position until the rename is done.
+
 **State -1: Project not initialized**
 Signal: no git repo, or git repo exists but docs/agents/ and
 CLAUDE.md are both absent, indicating /setup-matt-pocock-skills
@@ -117,33 +127,33 @@ but no product-brief.md.
 Position: beginning of Loop 1, Step 1.
 
 **State 1: Product defined, domain not modeled**
-Signal: product-brief.md exists, CONTEXT.md does not exist
+Signal: product-brief.md exists, GLOSSARY.md does not exist
 or contains only structural/technical vocabulary with no domain
 concepts.
 Position: Loop 1, Step 2.
 
 **State 2: Domain modeled, AX not done**
-Signal: CONTEXT.md exists with domain vocabulary, modules.md
+Signal: GLOSSARY.md exists with domain vocabulary, modules.md
 does not exist.
 Position: Loop 1, Step 3.
 
-**State 3: AX grilled, AX PRD not created**
+**State 3: AX grilled, AX spec not created**
 Signal: modules.md exists with all entries marked "proposed",
 no open GitHub issues at all, no pre-commit hook.
 Position: Loop 1, Step 4.
 
-**State 3b: AX PRD created, not yet broken into issues**
+**State 3b: AX spec created, not yet broken into issues**
 Signal: modules.md exists with all entries marked "proposed",
-exactly one open GitHub issue exists that is the AX PRD (large
+exactly one open GitHub issue exists that is the AX spec (large
 body, title contains "foundation"/"scaffold", or has the
 ready-for-agent label), no broken-out implementation issues
 yet, no pre-commit hook.
-Position: Loop 1, Step 5 — break PRD into implementation issues.
+Position: Loop 1, Step 5 — break spec into implementation issues.
 
-**State 4: AX PRD broken into issues, implementation not started**
+**State 4: AX spec broken into issues, implementation not started**
 Signal: multiple open GitHub issues exist that are infrastructure-
 related (TypeScript config, test harness, pre-commit hooks, module
-skeleton) — distinct from the PRD issue itself — no pre-commit
+skeleton) — distinct from the spec issue itself — no pre-commit
 hook yet, modules.md all proposed.
 Position: Loop 1, Steps 5-6.
 
@@ -164,16 +174,17 @@ confirmed entry, no open feature issues.
 Position: beginning of Loop 2, Step 1.
 
 **State 8: Feature cycle — grilling not done**
-Signal: open issues exist but no PRD issue (look for issues
-with "PRD" in title or a large detailed body), no research
+Signal: open issues exist but no spec issue (a spec issue has
+the /to-spec template's Problem Statement and User Stories
+sections, or has ticket sub-issues), no research
 or prototype files.
 Position: Loop 2, Steps 1-2 — load modules and grill.
 
-**State 9: Feature cycle — PRD done, issues not broken down**
-Signal: a PRD GitHub issue exists, no implementation issues
+**State 9: Feature cycle — spec done, issues not broken down**
+Signal: a spec GitHub issue exists, no implementation issues
 broken out from it yet.
 Position: Loop 2, Steps 6-7 — module boundary review then
-to-issues.
+to-tickets.
 
 **State 10: Feature cycle — implementation in progress**
 Signal: open implementation issues exist, some closed, no
@@ -267,14 +278,14 @@ explicitly out of scope. It produces product-brief.md — the
 anchor document that everything else in the workflow derives
 from.
 
-Do not write product-brief.md yourself. Do not use /to-prd
+Do not write product-brief.md yourself. Do not use /to-spec
 or /grill-with-docs. /grill-product is the correct skill for
 this step.
 
 **What it produces**: product-brief.md at the repo root.
 
 **Then after that**: Run /grill-domain to establish the core
-domain vocabulary in CONTEXT.md."
+domain vocabulary in GLOSSARY.md."
 
 ---
 
@@ -291,13 +302,13 @@ that grills you on the core concepts of the product's domain —
 what they mean precisely, how they relate to each other, and
 where the boundaries between them are. It reads product-brief.md
 before beginning and works from the vocabulary candidates
-section to seed CONTEXT.md with precise domain definitions.
+section to seed GLOSSARY.md with precise domain definitions.
 
 Do not use /grill-with-docs for this step. /grill-with-docs
 is for feature-cycle grilling sessions, not domain modeling.
 /grill-domain is the correct skill for this step.
 
-**What it produces**: CONTEXT.md with domain vocabulary and
+**What it produces**: GLOSSARY.md with domain vocabulary and
 entity relationships. ADRs for any hard domain modeling
 decisions.
 
@@ -318,37 +329,37 @@ missing}
 /grill-ax is a structured interview skill from byamabe-dev
 that grills you on technology choices, feedback loops, testing
 strategy, and initial module shape. It reads product-brief.md
-and CONTEXT.md before beginning — all technology decisions are
+and GLOSSARY.md before beginning — all technology decisions are
 anchored to the product and domain established in the previous
 two steps.
 
 **What it produces**: Technical ADRs, structural additions to
-CONTEXT.md, and the initial modules.md with all entries marked
+GLOSSARY.md, and the initial modules.md with all entries marked
 as proposed.
 
-**Then after that**: Run /to-prd scoped to the AX foundation
-to create the first implementation PRD."
+**Then after that**: Run /to-spec scoped to the AX foundation
+to create the first implementation spec."
 
 ---
 
 ### State 3 report
 
-"**Where you are**: Loop 1, Step 4 — AX PRD
+"**Where you are**: Loop 1, Step 4 — AX spec
 **How I know**: {two sentences on what exists and what is
 missing}
 
-**Immediate next action**: Run /to-prd
+**Immediate next action**: Run /to-spec
 
-This is the only PRD that is not about a user-facing feature.
+This is the only spec that is not about a user-facing feature.
 Scope it explicitly to: feedback loop setup, technology
 scaffolding, initial module skeleton, and test harness. Tell
-the skill this is the AX foundation PRD so it does not try
+the skill this is the AX foundation spec so it does not try
 to interview you — it should synthesize directly from the
 grill-ax session context.
 
-**What it produces**: A GitHub issue containing the AX PRD.
+**What it produces**: A GitHub issue containing the AX spec.
 
-**Then after that**: Run /to-issues to break the AX PRD into
+**Then after that**: Run /to-tickets to break the AX spec into
 implementation issues."
 
 ---
@@ -359,23 +370,24 @@ implementation issues."
 **How I know**: {two sentences on what exists and what is
 missing}
 
-**Immediate next action**: Run /to-issues against the AX
-Foundation PRD.
+**Immediate next action**: Run /to-tickets against the AX
+Foundation spec.
 
-Point /to-issues at the open AX PRD issue. It will break
-the PRD into discrete implementation issues with blocking
+Point /to-tickets at the open AX spec issue. It will break
+the spec into discrete implementation issues with blocking
 relationships — TypeScript config, Neon database setup,
 module skeletons, test harness, CI workflow, and pre-commit
 hook.
 
-Do not start implementing yet. Do not run /tdd yet. The
+Do not start implementing yet. Do not run /implement yet. The
 implementation issues must exist before the agent can work
 through them systematically.
 
 **What it produces**: GitHub implementation issues for the
 AX foundation, each scoped to a discrete deliverable.
 
-**Then after that**: Run /tdd or let the AFK agent work
+**Then after that**: Run /implement per ticket (clearing
+context between tickets), or let the AFK agent work
 through the open infrastructure issues."
 
 ---
@@ -386,7 +398,8 @@ through the open infrastructure issues."
 **How I know**: {two sentences on what exists and what is
 missing}
 
-**Immediate next action**: Run /tdd or let the AFK agent
+**Immediate next action**: Run /implement per ticket
+(clearing context between tickets), or let the AFK agent
 work through the open infrastructure issues.
 
 The agent should work through: TypeScript config, test harness,
@@ -460,7 +473,7 @@ missing}
 The foundation is complete. You have:
 
 - product-brief.md — what the product is
-- CONTEXT.md — the shared domain language
+- GLOSSARY.md — the shared domain language
 - modules.md — the current module topology (all confirmed)
 - Pre-commit hooks — deterministic feedback loops enforced
 - ADRs — hard decisions recorded
@@ -473,10 +486,10 @@ topology into context, then /grill-with-docs to begin
 grilling on the first feature.
 
 **What it produces**: Shared understanding of the first
-feature, CONTEXT.md updated, any new ADRs.
+feature, GLOSSARY.md updated, any new ADRs.
 
-**Then after that**: Run /to-prd to synthesize the grilling
-session into a feature PRD."
+**Then after that**: Run /to-spec to synthesize the grilling
+session into a feature spec."
 
 ---
 
@@ -491,13 +504,13 @@ missing}
 
 /byamabe-load-modules loads modules.md into context so the
 grilling session is aware of existing module boundaries.
-/grill-with-docs then grills on the feature one question at
-a time.
+/grill-with-docs then grills on the feature in rounds, each
+asking every question whose prerequisites are settled.
 
 **What it produces**: Shared understanding of the feature,
-CONTEXT.md updated.
+GLOSSARY.md updated.
 
-**Then after that**: Run /to-prd to synthesize into a PRD."
+**Then after that**: Run /to-spec to synthesize into a spec."
 
 ---
 
@@ -508,17 +521,17 @@ review then issue breakdown
 **How I know**: {two sentences on what exists and what is
 missing}
 
-**Immediate next action**: Review the PRD module sketch
-against modules.md manually (10 minutes), then run /to-issues
+**Immediate next action**: Review the spec against modules.md
+manually (10 minutes), then run /to-tickets
 
 Check: does this feature fit within existing module boundaries?
 Is a new module being proposed? If so, add a draft entry to
-modules.md marked status: proposed before running /to-issues.
+modules.md marked status: proposed before running /to-tickets.
 
 **What it produces**: GitHub implementation issues with
 blocking relationships and a QA issue with a manual QA plan.
 
-**Then after that**: Begin implementation via /tdd or AFK
+**Then after that**: Begin implementation via /implement or AFK
 Sandcastle loop."
 
 ---

@@ -76,12 +76,12 @@ implementation at any point. If the user raises them, acknowledge
 and defer: "That's an important decision — it belongs in a later
 session once we've settled the product definition."
 
-Do not produce a PRD. Do not produce GitHub issues. The output of
+Do not produce a spec. Do not produce GitHub issues. The output of
 this session is product-brief.md only.
 
 When vocabulary specific to this product emerges — terms the user
 uses to describe their users, their problems, or their capability
-areas — note them. They are candidates for CONTEXT.md in the
+areas — note them. They are candidates for GLOSSARY.md in the
 domain modeling session that follows.
 
 ## Terminal output
