@@ -45,8 +45,8 @@ Function names, method signatures, or a description of the public
 surface. Keep it brief. This should be the stable part — what
 callers need to know and nothing more.}
 **Tested via**: {What kind of tests cover this module and at what
-level. e.g. "Integration tests through the public service interface,
-no internal unit tests."}
+level. e.g. "Integration tests through the module's interface, no
+internal unit tests."}
 **Known design debt**: {Anything that is currently wrong or shallow
 about this module that has been deliberately deferred. Leave blank
 if none.}

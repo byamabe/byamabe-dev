@@ -97,8 +97,11 @@ git log --oneline -1 2>/dev/null
 ```
 # Check for temporary files that signal work in progress
 ls plans/research*.md 2>/dev/null
-ls plans/prototype*.md 2>/dev/null
 ```
+
+Prototypes leave no file on main: /prototype commits them to a
+throwaway branch and links that branch from the implementation
+ticket. Look for the link in the open tickets, not for a file.
 
 ## Step 3: Determine position in workflow
 
@@ -176,8 +179,7 @@ Position: beginning of Loop 2, Step 1.
 **State 8: Feature cycle — grilling not done**
 Signal: open issues exist but no spec issue (a spec issue has
 the /to-spec template's Problem Statement and User Stories
-sections, or has ticket sub-issues), no research
-or prototype files.
+sections, or has ticket sub-issues), no research files.
 Position: Loop 2, Steps 1-2 — load modules and grill.
 
 **State 9: Feature cycle — spec done, issues not broken down**
@@ -201,16 +203,19 @@ opened before QA begins.
 
 **State 11: Feature cycle — PR open, QA not done**
 Signal: an open PR exists for this cycle, QA issue is open.
+If no QA issue exists (/to-tickets creates one only when asked),
+ask the user whether QA has passed: no is State 11, yes is State 12.
 Position: Loop 2, Step 9 — manual QA against the open PR.
 
 **State 12: Feature cycle — QA done, PR not merged**
-Signal: QA issue closed, open PR still exists.
+Signal: QA issue closed (or the user confirms QA passed), open PR
+still exists.
 Position: Loop 2 — merge the PR before running
 byamabe-update-modules.
 
 **State 13: Feature cycle — QA done, modules not updated**
-Signal: PR merged, QA issue closed, but modules.md last commit
-predates the merged PR.
+Signal: PR merged, no QA issue still open, but modules.md last
+commit predates the merged PR.
 Position: Loop 2, Step 10 — run byamabe-update-modules.
 
 **State 14: Modules updated, architecture review flagged**
@@ -528,8 +533,12 @@ Check: does this feature fit within existing module boundaries?
 Is a new module being proposed? If so, add a draft entry to
 modules.md marked status: proposed before running /to-tickets.
 
+When /to-tickets shows the breakdown, ask for a final QA ticket
+holding a manual QA plan, blocked by all the others and labeled
+ready-for-human. It does not create one on its own.
+
 **What it produces**: GitHub implementation issues with
-blocking relationships and a QA issue with a manual QA plan.
+blocking relationships, and the QA issue you asked for.
 
 **Then after that**: Begin implementation via /implement or AFK
 Sandcastle loop."
@@ -589,12 +598,14 @@ missing}
 Find the QA issue:
 gh issue list --state open
 
+If there is none, use the spec's user stories and each ticket's
+acceptance criteria as the QA plan.
+
 Work through each item in the QA plan. File new issues for
 anything that fails — those re-enter the backlog. When all
-QA items pass, close the QA issue.
+QA items pass, close the QA issue if there is one.
 
-**What it produces**: Confirmed working feature, QA issue
-closed.
+**What it produces**: Confirmed working feature.
 
 **Then after that**: Merge the PR, then run
 /byamabe-update-modules."
@@ -607,8 +618,8 @@ closed.
 **How I know**: {two sentences on what exists and what is
 missing}
 
-**Immediate next action**: Merge the PR
-gh pr merge --merge
+**Immediate next action**: Merge the PR with a method the repo
+allows: gh pr merge --squash, --merge, or --rebase
 
 Do not run /byamabe-update-modules until the PR is merged —
 it uses the merged PR to scope its exploration.
@@ -652,8 +663,10 @@ the last cycle. Run /improve-codebase-architecture before
 starting the next feature to prevent technical debt from
 compounding.
 
-**What it produces**: Refactor RFCs as GitHub issues entering
-the backlog.
+**What it produces**: A local HTML report of candidate refactors,
+then a grilling session on the one you pick. It may update
+GLOSSARY.md and offer ADRs. It files no issues: to put a refactor
+in the backlog, run /to-tickets at the end of the session.
 
 **Then after that**: Run /byamabe-next to confirm you are at
 State 15 and ready for the next feature cycle."
