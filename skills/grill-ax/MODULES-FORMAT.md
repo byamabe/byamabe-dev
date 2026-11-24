@@ -67,7 +67,82 @@ and who consumes it.}
 
 {Things that are explicitly not modelled yet and why. Prevents the
 agent from inventing structure to fill apparent holes.}
+
+## Structure map
+
+{The YAML block described below.}
 ```
+
+## Structure map (YAML block)
+
+The prose says what each module owns and why. The structure map says
+the same boundaries in a form scripts can check:
+byamabe-review-modules generates dependency rules from it and
+verifies the code against it.
+
+modules.md contains exactly one fenced `yaml` block, under the
+`## Structure map` heading:
+
+```yaml
+source_roots: [src]              # where code lives; everything else is ignored
+ignore: ["**/*.test.ts", "**/*.d.ts", "src/generated/**"]
+shared: [schema]                 # modules any module may depend on
+modules:
+  - name: Content Pipeline       # exactly matches the ### heading
+    status: confirmed            # exactly matches the prose Status
+    paths: ["src/content/**"]
+    entry: src/content/index.ts  # optional
+    may_depend_on: [Corpus]
+    public_exports: [generateExercise, validateExercise]
+  - name: Corpus
+    status: confirmed
+    paths: ["src/corpus/**"]
+    may_depend_on: []
+    public_exports: [searchCorpus, getPassage]
+  - name: schema
+    status: confirmed
+    paths: ["src/schema/**"]
+    may_depend_on: []
+    public_exports: []           # empty means "not checked"; see below
+```
+
+### Fields
+
+| Field | Required | Meaning |
+|---|---|---|
+| `source_roots` | yes | Directories that contain code. Files outside them are never "unmapped". |
+| `ignore` | no | Globs excluded from every check (tests, generated code, type declarations). |
+| `shared` | no | Module names every module may depend on without listing them. Use sparingly: each entry is a boundary you've chosen not to check. |
+| `name` | yes | Module name, identical to its `###` heading in the prose. |
+| `status` | yes | `proposed` or `confirmed`, identical to the prose **Status**. |
+| `paths` | yes | Globs, relative to the project root, for the files this module owns. A file must match at most one module. A proposed module may have paths with no files yet. |
+| `entry` | no | If set, other modules may import this module only through this file. Imports that reach past it into internal files are boundary violations. |
+| `may_depend_on` | yes | Module names this module may import from, besides `shared`. Empty list means it depends on nothing. |
+| `public_exports` | yes | Symbol names other modules may import. An empty list means the surface isn't checked yet (say so in **Known design debt**). |
+
+### Rules
+
+- **The YAML is authoritative for what scripts check;** the prose is
+  authoritative for meaning. Where they overlap they must agree:
+  same module names, same statuses, and every name in
+  `public_exports` appears in the module's **Interface** prose.
+  byamabe-review-modules checks this and reports mismatches.
+- **Every dependency edge and public export is a design decision.**
+  Adding one changes the target the code is checked against. Only
+  the developer adds them: grill-ax asks during the session, and
+  byamabe-update-modules stops and asks before writing one. Neither
+  infers them from the code.
+- **Paths may be updated from the code;** edges and exports may not.
+  Moving or adding files inside a module's existing ownership is
+  bookkeeping, not a design change.
+- **Paths don't overlap.** If two modules' globs match the same file,
+  the map is ambiguous and the review stops.
+- **Observed drafts are not maps.** When a block is drafted from an
+  existing codebase's imports, it describes how the code is wired,
+  not how it should be. Mark it with a `# OBSERVED DRAFT` comment on
+  its first line. byamabe-review-modules refuses to run while that
+  line is present; the developer removes it after editing the draft
+  into the intended design.
 
 ## Rules
 
@@ -91,3 +166,6 @@ agent from inventing structure to fill apparent holes.}
 - **Proposed entries are targets, not facts.** The agent should build
   toward them but byamabe-update-modules may revise them after seeing
   what was actually built.
+- **Every module has a structure map entry.** A prose entry without
+  one, or a YAML entry without prose, is incomplete. See "Structure
+  map (YAML block)" above.

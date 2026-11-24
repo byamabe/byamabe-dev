@@ -22,7 +22,9 @@ retired_pattern='CONTEXT\.md|CONTEXT-MAP\.md|CONTEXT-FORMAT\.md|/to-prd|to-prd |
 # Slash-prefixed tokens in our docs that are not skills.
 not_skills='path'
 
-docs=(README.md docs skills)
+# Tracked markdown only: installed dependencies and test fixtures are
+# not documentation.
+mapfile -t docs < <(git ls-files -- 'README.md' 'docs/*.md' 'skills/*.md' | grep -v '/test/fixture/')
 fail=0
 err() { echo "FAIL: $*"; fail=1; }
 

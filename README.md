@@ -136,9 +136,9 @@ Audits the whole codebase against modules.md and reports drift that
 no single cycle shows: boundary violations, unmapped files, public
 surface growth, and modules doing work outside what they own.
 Deterministic checks run first; judgment findings are labeled.
-Reports only — each fix is the developer's decision. Requires a
-structured YAML block in modules.md and `scripts/review-structure.sh`
-(in progress).
+Reports only — each fix is the developer's decision. Requires
+Node and a Structure map YAML block in modules.md (see
+grill-ax/MODULES-FORMAT.md).
 
 ## Standing documents produced
 

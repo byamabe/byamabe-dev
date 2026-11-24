@@ -22,6 +22,19 @@ presented for human review and explicitly approved before being
 written. The human approval step is the quality gate — it catches
 what this skill missed.
 
+## Step 0: Check the structure map
+
+modules.md carries a Structure map YAML block (see MODULES-FORMAT.md
+in grill-ax). Before scoping:
+
+- If the block's first line is `# OBSERVED DRAFT`, stop. The map is
+  a draft of how the code happens to be wired, not an approved
+  design. Ask the developer to edit it into the intended design and
+  remove that line first.
+- If modules.md has no block, say so and continue with the prose
+  only. List "add the Structure map" as the first proposed change
+  in Step 4, and do not draft its edges or exports yourself.
+
 ## Step 1: Determine scope
 
 Identify what changed in the last implementation cycle using the
@@ -117,6 +130,10 @@ For each module touched by the cycle, gather:
 - How it is tested — what the tests cover and at what level
 - Whether any new files appeared that suggest a module boundary
   shifted or a new module emerged
+- Every import that crosses from this module into another one,
+  and every symbol this module exports that another module imports.
+  These are compared against the structure map's `may_depend_on`
+  and `public_exports` in Step 3.
 
 Do not read every file. Read interface files, service entry
 points, index files, and test files. Read internals only when
@@ -153,6 +170,20 @@ modules.md was actually built. Confirm it with accurate
 descriptions replacing the sketch and update status to
 confirmed.
 
+**Structure map drift** — the code no longer matches the YAML
+block. Three kinds, handled differently in Step 4:
+- *Paths*: files were added, moved or removed inside a module's
+  existing ownership, so its `paths` globs need updating. This is
+  bookkeeping.
+- *New edge*: the module now imports from a module not in its
+  `may_depend_on` (or `shared`).
+- *New export*: another module now imports a symbol not in this
+  module's `public_exports`, or reaches past its `entry` file.
+
+New edges and new exports are design decisions made implicitly
+during implementation. Never add them to the map on your own
+judgment.
+
 **Design debt** — something about the current state is worse
 than what modules.md describes or implies. The module is
 shallower than its entry suggests, its interface is leaking
@@ -169,7 +200,8 @@ Present each discrepancy as a proposed change in this format:
 **Module**: {module name}
 **Change type**: {ownership drift | interface drift | boundary
 crossing | new module | removed module | proposed to confirmed |
-design debt}
+structure map: paths | structure map: new edge | structure map:
+new export | design debt}
 **Severity**: {high | medium | low}
 **Current entry says**: {relevant excerpt from modules.md}
 **Reality is**: {what the code actually shows}
@@ -188,10 +220,28 @@ After presenting all proposed changes, show a summary:
 Then ask: "Do you want to approve all, approve selectively,
 or discuss any of these before I write them?"
 
+"Approve all" never covers a new edge or a new export. Present each
+of those on its own, after the rest, and stop for a decision on
+each:
+
+"{Module A} now imports {symbol} from {Module B}
+({file}:{line}). The map doesn't allow this. Either the design
+changed (add the edge/export to the map), or the code crossed a
+boundary (leave the map, open an issue to fix the code). Which?"
+
+Do not continue until each one has an answer. If the developer
+chooses to fix the code, draft the issue and leave the map
+unchanged.
+
 ## Step 5: Write approved changes
 
 Write only the changes explicitly approved by the user. Update
 modules.md in place — rewrite affected entries, do not append.
+
+Keep the prose and the structure map in step: a module confirmed in
+the prose is `status: confirmed` in the YAML, a renamed module is
+renamed in both, and every name in `public_exports` appears in the
+module's Interface prose.
 
 After writing, commit modules.md with a message in this format:
 ```
@@ -207,6 +257,8 @@ that suggest improve-codebase-architecture from mattpocock/skills
 should be run before the next feature cycle begins:
 
 - Any boundary crossing, even if resolved in modules.md
+- Any new edge or export the developer added to the map this
+  cycle
 - Any design debt entry added
 - Any new module that appeared without having been planned in
   grill-ax or proposed during the spec boundary review

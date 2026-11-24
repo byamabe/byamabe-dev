@@ -29,38 +29,21 @@ the map is wrong is the developer's call.
 ## Preconditions (stop loudly if either fails)
 
 1. modules.md exists at the project root.
-2. modules.md contains a parseable YAML block (see "Structured block"
-   below).
+2. modules.md contains a Structure map YAML block, not marked
+   `# OBSERVED DRAFT` (format: MODULES-FORMAT.md in grill-ax).
 
 If modules.md is missing, tell the user: greenfield projects get it
 from grill-ax; brownfield projects can establish a baseline with
 improve-codebase-architecture.
 
-If the YAML block is missing, stop. An agent may draft one from the
-current imports, but the draft must be labeled "observed, not
-intended", and the developer edits it into the intended design before
-this skill runs. Adopting observed wiring as the design would approve
-existing drift.
+If the block is missing, stop. An agent may draft one from the
+current imports, but the draft's first line must be `# OBSERVED
+DRAFT`, and the developer edits it into the intended design and
+removes that line before this skill runs. Adopting observed wiring as
+the design would approve existing drift.
 
 Never fall back to an LLM-only review. A review without the
 deterministic layer is a silent downgrade.
-
-## Structured block
-
-modules.md carries one fenced YAML block alongside the prose entries.
-Module names match the prose headings:
-
-```yaml
-modules:
-  - name: content-pipeline
-    status: confirmed
-    paths: ["src/content/**"]
-    may_depend_on: [corpus, schema]
-    public_exports: [generateExercise, validateExercise]
-```
-
-The prose stays authoritative for Owns, Does not own, and Interface.
-The YAML is what scripts check against.
 
 ## Step 1: Read the map
 
@@ -69,20 +52,39 @@ explore the codebase yet. The map is the starting point.
 
 ## Step 2: Deterministic findings
 
-Run `scripts/review-structure.sh` from this skill's folder against
-the project root. If the script is missing or exits with an error,
-stop and report it. Do not approximate the checks yourself.
+Run this skill's script against the project root, writing the JSON
+next to the report:
+
+```
+scripts/review-structure.sh <project-root> --out docs/reviews/structure-YYYY-MM-DD.json
+```
+
+The first run installs its pinned dependencies (Node required). It
+prints a markdown summary and exits:
+
+- **0**: report produced. Continue.
+- **2**: the map is unusable (missing, observed draft, invalid fields,
+  unknown module names, or overlapping `paths`). Stop and show the
+  developer the message. Fixing the map is a design task, not part
+  of this review.
+- **1**, or the script is missing: stop and report it. Do not
+  approximate the checks yourself.
 
 | Finding | Method |
 |---|---|
-| Boundary violation | dependency-cruiser rules generated from `may_depend_on`; any import along an undeclared edge |
-| Unmapped file | source file matched by no module's `paths` |
-| Empty module | confirmed module whose `paths` match no files |
-| Surface growth | exported symbol not listed in the module's `public_exports` |
-| Module totals | aggregate cognitive complexity and duplication per module, compared with the last report in docs/reviews/ if one exists |
+| Map consistency | Structure map and prose disagree: missing entries, different statuses, or a public export not mentioned in the Interface prose |
+| Boundary violation | an import from one module into another that isn't in `may_depend_on` or `shared` |
+| Entry bypass | an import into a module with an `entry` file that reaches past it into internal files |
+| Surface growth | another module imports a symbol not in `public_exports` (skipped when the list is empty) |
+| Unmapped file | a code file under `source_roots`, not ignored, matched by no module's `paths` |
+| Empty confirmed module | a confirmed module whose `paths` match no files |
+| Proposed, not yet built | a proposed module with no files: expected, not drift |
+| Cross-module duplication | a duplicated block (jscpd) shared between two modules |
+| Module totals | files, cognitive complexity (sonarjs) and duplication per module, with deltas against the previous `docs/reviews/structure-*.json` |
 
-An empty proposed module is expected, not drift. Report it only as
-"proposed, not yet built".
+Imports are resolved by the TypeScript compiler using the project's
+tsconfig, so path aliases count. Same commit, same output: the report
+is keyed by commit hash and flags uncommitted changes as `dirty`.
 
 Record findings exactly as the script reports them. Do not
 reinterpret, filter, or drop any.
@@ -92,7 +94,7 @@ reinterpret, filter, or drop any.
 For each confirmed module, read only:
 
 - its Owns and Does not own sections,
-- its file list and exported symbol names,
+- its file list and its `public_exports`,
 - the files the deterministic layer flagged in this module.
 
 Then answer: does this module contain work its Does not own section
