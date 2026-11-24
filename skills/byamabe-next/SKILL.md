@@ -504,8 +504,8 @@ missing}
 
 /byamabe-load-modules loads modules.md into context so the
 grilling session is aware of existing module boundaries.
-/grill-with-docs then grills on the feature one question at
-a time.
+/grill-with-docs then grills on the feature in rounds, each
+asking every question whose prerequisites are settled.
 
 **What it produces**: Shared understanding of the feature,
 GLOSSARY.md updated.

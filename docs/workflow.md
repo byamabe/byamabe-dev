@@ -141,27 +141,35 @@ Input: GLOSSARY.md, modules.md (loaded via Step 1), existing ADRs
 Output: shared understanding of the feature, GLOSSARY.md updated,
 new ADRs if decisions meet the three-condition filter
 
-Grills on the feature one question at a time. Challenges against
+Grills on the feature in rounds: each round asks every question
+whose prerequisites are settled, with a recommended answer, and
+waits for your replies. Challenges against
 existing domain language. Cross-references with code. Surfaces
 conflicts with existing module boundaries rather than making
 silent assumptions.
 
-### Step 3: Research [Pocock] (when needed)
+### Step 3: `/research` [Pocock] (when needed)
 
 Run when the feature requires an external service, unfamiliar
 library, or architectural option that needs comparison before
 committing.
 
-Output: temporary research.md in docs/ or plans/
+Runs as a background agent against primary sources.
+
+Output: one cited Markdown file, saved where the repo keeps such
+notes (use plans/research-*.md so /byamabe-next detects it)
 Lifecycle: deleted after the implementation cycle that consumes it.
 
-### Step 4: Prototype [Pocock] (when needed)
+### Step 4: `/prototype` [Pocock] (when needed)
 
 Run when the feature has significant unknown unknowns — particularly
 around UI design or a new external integration.
 
-Output: throwaway prototype on a dev-only route.
-Lifecycle: promoted into real implementation or deleted.
+Output: throwaway prototype. A UI question gets variations on one
+route; a logic or state question gets a single HTML file.
+Lifecycle: fold the validated decision into the real code, commit
+the prototype to a throwaway branch out of main, and link that
+branch from the implementation issue.
 
 ### Step 5: `/to-spec` [Pocock]
 
@@ -274,7 +282,7 @@ environment it enters is more precisely described:
 | ADRs | Append-only | grill-domain, grill-ax, grill-with-docs | Never | Never |
 | modules.md | Standing, in-place | grill-ax | byamabe-update-modules post-cycle | Never |
 | research.md | Temporary | Research session | Not updated | After consuming cycle |
-| Prototype code | Temporary | Prototype session | During session | After promoting or abandoning |
+| Prototype code | Temporary | /prototype | During session | Kept on a throwaway branch, never merged to main |
 | Spec (GitHub issue) | Disposable | to-spec | Not updated | Closed after implementation |
 | Implementation issues | Disposable | to-tickets | Agent comments during work | Closed after implementation |
 | QA issue | Disposable | to-tickets | Developer during QA | Closed after QA passes |
