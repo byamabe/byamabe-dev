@@ -76,7 +76,9 @@ prints a markdown summary and exits:
 | Boundary violation | an import from one module into another that isn't in `may_depend_on` or `shared` |
 | Entry bypass | an import into a module with an `entry` file that reaches past it into internal files |
 | Surface growth | another module imports a symbol not in `public_exports` (skipped when the list is empty) |
+| Unresolved internal import | an import that points into the project (`./`, `#`, `~`, `@/`) but doesn't resolve, so a dependency edge may be missing. Usually a framework alias the tsconfig doesn't know |
 | Unmapped file | a code file under `source_roots`, not ignored, matched by no module's `paths` |
+| Not analyzed | a `.vue`, `.svelte` or `.astro` file under `source_roots`: its imports aren't checked |
 | Empty confirmed module | a confirmed module whose `paths` match no files |
 | Proposed, not yet built | a proposed module with no files: expected, not drift |
 | Cross-module duplication | a duplicated block (jscpd) shared between two modules |

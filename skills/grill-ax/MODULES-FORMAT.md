@@ -112,11 +112,12 @@ modules:
 |---|---|---|
 | `source_roots` | yes | Directories that contain code. Files outside them are never "unmapped". |
 | `ignore` | no | Globs excluded from every check (tests, generated code, type declarations). |
+| `tsconfig` | no | tsconfig used to resolve imports. Default: the nearest `tsconfig.json`, else bundler resolution, which follows `package.json` `imports` (`#alias/*`). Point it at a generated config (such as Nuxt's `.nuxt/tsconfig.json`) only if that file exists when the review runs. |
 | `shared` | no | Module names every module may depend on without listing them. Use sparingly: each entry is a boundary you've chosen not to check. |
 | `name` | yes | Module name, identical to its `###` heading in the prose. |
 | `status` | yes | `proposed` or `confirmed`, identical to the prose **Status**. |
 | `paths` | yes | Globs, relative to the project root, for the files this module owns. A file must match at most one module. A proposed module may have paths with no files yet. |
-| `entry` | no | If set, other modules may import this module only through this file. Imports that reach past it into internal files are boundary violations. |
+| `entry` | no | A file, or a list of files, other modules must import this module through (a list when the module has an entry per side, such as `shared` and `server`). Imports that reach past them into internal files are reported as entry bypasses. |
 | `may_depend_on` | yes | Module names this module may import from, besides `shared`. Empty list means it depends on nothing. |
 | `public_exports` | yes | Symbol names other modules may import. An empty list means the surface isn't checked yet (say so in **Known design debt**). |
 

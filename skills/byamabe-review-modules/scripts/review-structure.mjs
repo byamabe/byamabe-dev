@@ -75,6 +75,13 @@ function readMap() {
     if (!Array.isArray(m.paths) || m.paths.length === 0) errors.push(`${where}: \`paths\` must be a non-empty list.`);
     if (!Array.isArray(m.may_depend_on)) errors.push(`${where}: \`may_depend_on\` must be a list (use [] for none).`);
     if (!Array.isArray(m.public_exports)) errors.push(`${where}: \`public_exports\` must be a list (use [] for not yet checked).`);
+    if (m.entry !== undefined) {
+      m.entry = [m.entry].flat();
+      if (!m.entry.every((e) => typeof e === "string" && e)) errors.push(`${where}: \`entry\` must be a path or a list of paths.`);
+    }
+  }
+  if (map.tsconfig !== undefined && !fs.existsSync(path.join(root, map.tsconfig))) {
+    errors.push(`tsconfig "${map.tsconfig}" not found. Generate it first (for Nuxt: nuxt prepare), or remove the field.`);
   }
   for (const m of map.modules) {
     for (const d of m.may_depend_on ?? []) if (!names.has(d)) errors.push(`${m.name}: may_depend_on names unknown module "${d}".`);
@@ -118,16 +125,19 @@ function consistency(map, prose) {
 }
 
 // ---------------------------------------------------------- the files
+// Code files the review covers, plus files it can't analyze (reported,
+// never silently skipped).
+const UNANALYZED_EXT = /\.(vue|svelte|astro)$/;
 function listFiles(map) {
   const raw = execFileSync("git", ["-C", root, "ls-files", "-z", "--cached", "--others", "--exclude-standard"], { encoding: "utf8" });
   const ignored = picomatch(map.ignore.length ? map.ignore : ["\0never"], { dot: true });
   const roots = map.source_roots.map((r) => r.replace(/\/+$/, "") + "/");
-  return raw.split("\0").filter(Boolean)
-    .filter((f) => CODE_EXT.test(f))
+  const inScope = raw.split("\0").filter(Boolean)
     .filter((f) => roots.some((r) => f.startsWith(r)))
     .filter((f) => fs.existsSync(path.join(root, f)))
     .filter((f) => !ignored(f))
     .sort(byText);
+  return { files: inScope.filter((f) => CODE_EXT.test(f)), notAnalyzed: inScope.filter((f) => UNANALYZED_EXT.test(f)) };
 }
 
 function assignModules(map, files) {
@@ -144,12 +154,28 @@ function assignModules(map, files) {
 }
 
 // --------------------------------------------------------- the imports
-function compilerOptions() {
-  const cfg = ts.findConfigFile(root, ts.sys.fileExists, "tsconfig.json");
+function compilerOptions(map) {
+  const cfg = map.tsconfig ? path.join(root, map.tsconfig) : ts.findConfigFile(root, ts.sys.fileExists, "tsconfig.json");
   if (!cfg) return { allowJs: true, jsx: ts.JsxEmit.Preserve, moduleResolution: ts.ModuleResolutionKind.Bundler, module: ts.ModuleKind.ESNext };
   const read = ts.readConfigFile(cfg, ts.sys.readFile);
   const parsed = ts.parseJsonConfigFileContent(read.config, ts.sys, path.dirname(cfg));
   return { allowJs: true, ...parsed.options };
+}
+
+// `const { a, b: c } = await import("x")` (or require) uses a and b.
+// Anything else (a namespace kept in a variable) counts as "*".
+function destructuredNames(call) {
+  let node = call.parent;
+  if (node && ts.isAwaitExpression(node)) node = node.parent;
+  if (node && ts.isParenthesizedExpression(node)) node = node.parent;
+  if (!node || !ts.isVariableDeclaration(node) || !ts.isObjectBindingPattern(node.name)) return null;
+  const names = [];
+  for (const el of node.name.elements) {
+    const key = el.propertyName ?? el.name;
+    if (el.dotDotDotToken || !ts.isIdentifier(key)) return null;
+    names.push(key.text);
+  }
+  return names;
 }
 
 // Every import-like reference in a file: specifier, symbols, line.
@@ -179,7 +205,7 @@ function referencesIn(file) {
       add(node.moduleReference.expression.text, ["*"], node);
     } else if (ts.isCallExpression(node) && node.arguments.length === 1 && ts.isStringLiteralLike(node.arguments[0])
       && (node.expression.kind === ts.SyntaxKind.ImportKeyword || (ts.isIdentifier(node.expression) && node.expression.text === "require"))) {
-      add(node.arguments[0].text, ["*"], node);
+      add(node.arguments[0].text, destructuredNames(node) ?? ["*"], node);
     }
     ts.forEachChild(node, visit);
   };
@@ -187,22 +213,30 @@ function referencesIn(file) {
   return refs;
 }
 
+// A specifier that can't be a package name points into the project. If
+// it doesn't resolve, an edge may be missing: report it, don't skip it.
+const INTERNAL_SPEC = /^(\.|\/|#|~|@\/|@@\/)/;
+
 function crossModuleImports(files, owner, options) {
   const host = ts.createCompilerHost(options);
-  const edges = [];
+  const edges = [], unresolved = [];
   for (const file of files) {
     const from = owner.get(file);
     if (!from) continue;
     for (const ref of referencesIn(file)) {
       const res = ts.resolveModuleName(ref.spec, path.join(root, file), options, host).resolvedModule;
-      if (!res || res.isExternalLibraryImport) continue;
+      if (!res) {
+        if (INTERNAL_SPEC.test(ref.spec)) unresolved.push({ module: from, file, line: ref.line, specifier: ref.spec });
+        continue;
+      }
+      if (res.isExternalLibraryImport) continue;
       const target = rel(res.resolvedFileName);
       const to = owner.get(target);
       if (!to || to === from) continue;
       edges.push({ from, to, file, line: ref.line, target, symbols: ref.symbols });
     }
   }
-  return edges;
+  return { edges, unresolved: sortBy(unresolved, (u) => `${u.file}:${String(u.line).padStart(6, "0")}`) };
 }
 
 // ------------------------------------------------------------ the checks
@@ -214,8 +248,8 @@ function checkEdges(map, edges) {
     if (!src.may_depend_on.includes(e.to) && !map.shared.includes(e.to)) {
       boundary.push({ from: e.from, to: e.to, file: e.file, line: e.line, target: e.target });
     }
-    if (dst.entry && e.target !== dst.entry) {
-      entryBypass.push({ from: e.from, to: e.to, file: e.file, line: e.line, target: e.target, entry: dst.entry });
+    if (dst.entry && !dst.entry.includes(e.target)) {
+      entryBypass.push({ from: e.from, to: e.to, file: e.file, line: e.line, target: e.target, entry: dst.entry.join(", ") });
     }
     if (dst.public_exports.length > 0) {
       for (const sym of e.symbols) {
@@ -355,7 +389,9 @@ function markdown(r) {
   section("Boundary violations", f.boundary, (i) => `${i.from} → ${i.to} at \`${loc(i)}\` (imports \`${i.target}\`; not in may_depend_on)`);
   section("Entry bypass", f.entry_bypass, (i) => `${i.from} → ${i.to} at \`${loc(i)}\` imports \`${i.target}\` instead of \`${i.entry}\``);
   section("Surface growth", f.surface, (i) => `${i.importer} imports \`${i.symbol}\` from ${i.module} at \`${loc(i)}\` (not in public_exports)`);
+  section("Unresolved internal imports (edges may be missing)", f.unresolved, (i) => `\`${loc(i)}\` in ${i.module}: \`${i.specifier}\``);
   section("Unmapped files", f.unmapped, (i) => `\`${i}\``);
+  section("Not analyzed (unsupported file type)", f.not_analyzed, (i) => `\`${i}\``);
   section("Empty confirmed modules", f.empty_confirmed, (i) => i);
   section("Proposed, not yet built", f.proposed_not_built, (i) => i);
   section("Cross-module duplication", r.cross_module_clones, (c) => `${c.lines} lines: \`${loc(c.a)}\` (${c.modules[0]}) ↔ \`${loc(c.b)}\` (${c.modules[1]})`);
@@ -380,9 +416,9 @@ function markdown(r) {
 // --------------------------------------------------------------- main
 async function main() {
   const { map, md } = readMap();
-  const files = listFiles(map);
+  const { files, notAnalyzed } = listFiles(map);
   const owner = assignModules(map, files);
-  const edges = crossModuleImports(files, owner, compilerOptions());
+  const { edges, unresolved } = crossModuleImports(files, owner, compilerOptions(map));
   const presence = checkPresence(map, files, owner);
   const mapped = files.filter((f) => owner.has(f));
   const t = totals(map, owner, presence.counts, await complexity(mapped), duplication(mapped));
@@ -390,7 +426,9 @@ async function main() {
   const findings = {
     map_consistency: consistency(map, readProse(md)),
     ...checkEdges(map, edges),
+    unresolved,
     unmapped: presence.unmapped,
+    not_analyzed: notAnalyzed,
     empty_confirmed: presence.empty_confirmed,
     proposed_not_built: presence.proposed_not_built,
   };
