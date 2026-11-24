@@ -129,6 +129,17 @@ falling back to git log since the last modules.md commit. Presents
 proposed changes for human review before writing anything. Flags
 when improve-codebase-architecture should run before the next cycle.
 
+### Periodic audit
+
+**`/byamabe-review-modules`**
+Audits the whole codebase against modules.md and reports drift that
+no single cycle shows: boundary violations, unmapped files, public
+surface growth, and modules doing work outside what they own.
+Deterministic checks run first; judgment findings are labeled.
+Reports only — each fix is the developer's decision. Requires
+Node and a Structure map YAML block in modules.md (see
+grill-ax/MODULES-FORMAT.md).
+
 ## Standing documents produced
 
 | Document | Created by | Updated by | Deleted |

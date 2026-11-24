@@ -5,7 +5,8 @@ description: >
   technical decisions that determine how well an AI agent can work in
   this codebase over time: technology choices, feedback loops, testing
   strategy, and initial module shape. Produces technical ADRs, any
-  structural additions to GLOSSARY.md, and the initial modules.md.
+  structural additions to GLOSSARY.md, and the initial modules.md
+  with its structure map.
   Run after grill-product and grill-domain, before the AX spec.
   No feature discussion belongs here.
 disable-model-invocation: true
@@ -134,6 +135,23 @@ For each proposed module:
   mocking its internals?
 - Is it deep? Is there meaningful leverage at the interface, or
   is the interface nearly as complex as what it hides?
+- Which other modules may it depend on? Ask about each edge
+  explicitly. Every edge you allow is one the review will never
+  flag, so the default answer is no.
+- Which symbols make up its public surface? These become
+  `public_exports`; anything else is internal.
+- Does it have a single entry file other modules must import
+  through? If yes, record it as `entry`.
+
+Once the modules are settled, ask which (if any) belong in
+`shared`: modules every module may depend on, such as shared
+types. Push back on more than one or two. Each shared module is a
+boundary you've chosen not to check.
+
+Record the developer's answers, not your recommendations. If the
+developer hasn't decided an edge or an export, leave it out and
+list it under **Deliberate gaps**. Never fill the structure map
+by inference.
 
 Anchor proposed modules to the domain model from GLOSSARY.md.
 A module that does not map to a domain concept or a group of
@@ -200,7 +218,15 @@ the foundation is in place."
 This is step 3 of 3 in the foundation workflow.
 
 When all four areas are resolved and shared understanding is reached,
-produce the initial modules.md using [MODULES-FORMAT.md].
+produce the initial modules.md using [MODULES-FORMAT.md], including
+the Structure map YAML block. `source_roots` and `ignore` follow
+from the technology and testing decisions in Areas 1 and 3; module
+`paths` follow from the module shape.
+
+Before writing the file, show the developer the YAML block on its
+own and get an explicit yes. It is the contract byamabe-review-modules
+checks the code against, so it should not be accepted in passing
+with the prose.
 
 modules.md at this stage describes proposed module shapes — the
 interfaces and ownership that the AX spec will implement. All entries
