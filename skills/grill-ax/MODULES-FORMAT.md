@@ -3,7 +3,7 @@
 ## Purpose
 
 modules.md is a living description of how this system decomposes into
-modules. It is not a PRD, a spec, or an implementation guide. It
+modules. It is not a spec, a ticket, or an implementation guide. It
 describes current state — what exists, what each piece owns, and what
 it deliberately does not own.
 
@@ -15,8 +15,8 @@ are replaced, not accumulated.
 
 Each module entry carries one of two status values:
 
-**proposed** — the module was sketched in grill-ax or a PRD module
-sketch. It has not yet been built. The entry describes intent, not
+**proposed** — the module was sketched in grill-ax or proposed while
+writing a spec. It has not yet been built. The entry describes intent, not
 reality. byamabe-update-modules will confirm or revise it after the
 implementation cycle closes.
 

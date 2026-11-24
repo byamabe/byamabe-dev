@@ -3,14 +3,14 @@
 ## Purpose
 
 product-brief.md is the standing definition of what this product is.
-It is not a PRD, a spec, or a roadmap. It does not describe how
+It is not a spec, a ticket, or a roadmap. It does not describe how
 anything is built. It describes who the product is for, what it does
 for them, what capability areas it covers, and what it explicitly
 does not do.
 
 It is updated in place when the product definition changes — not
 appended to. It is never disposable. Every subsequent grilling
-session, PRD, and feature decision should be checked against it.
+session, spec, and feature decision should be checked against it.
 
 ## Structure
 
@@ -62,7 +62,7 @@ no infrastructure, no dashboards.}
 
 {Terms that emerged during the product definition session that are
 likely to become domain concepts. Not definitions yet — those belong
-in CONTEXT.md after grill-domain. Just a list of candidate terms to
+in GLOSSARY.md after grill-domain. Just a list of candidate terms to
 bring into the domain modeling session.}
 ```
 

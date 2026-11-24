@@ -5,8 +5,8 @@ description: >
   technical decisions that determine how well an AI agent can work in
   this codebase over time: technology choices, feedback loops, testing
   strategy, and initial module shape. Produces technical ADRs, any
-  structural additions to CONTEXT.md, and the initial modules.md.
-  Run after grill-product and grill-domain, before the AX PRD.
+  structural additions to GLOSSARY.md, and the initial modules.md.
+  Run after grill-product and grill-domain, before the AX spec.
   No feature discussion belongs here.
 disable-model-invocation: true
 ---
@@ -16,10 +16,10 @@ Before beginning, read the following in order:
 1. product-brief.md — the product's capability areas constrain
    technology choices. Technology answers to the product, not the
    other way around.
-2. CONTEXT.md — the domain concepts and their relationships are
+2. GLOSSARY.md — the domain concepts and their relationships are
    already established. Module shape should follow domain boundaries,
    not technical convenience.
-3. CONTEXT-MAP.md if it exists — if the domain has bounded contexts,
+3. GLOSSARY-MAP.md if it exists — if the domain has bounded contexts,
    module shape should respect those context boundaries.
 4. The project's architecture decision record, if one exists — an
    architecture doc or provider decisions doc, usually linked from
@@ -135,13 +135,13 @@ For each proposed module:
 - Is it deep? Is there meaningful leverage at the interface, or
   is the interface nearly as complex as what it hides?
 
-Anchor proposed modules to the domain model from CONTEXT.md.
+Anchor proposed modules to the domain model from GLOSSARY.md.
 A module that does not map to a domain concept or a group of
 related domain concepts is a technical artifact, not a design
 decision. Push back on technically-motivated modules that have
 no domain grounding.
 
-If CONTEXT-MAP.md exists and bounded contexts were established
+If GLOSSARY-MAP.md exists and bounded contexts were established
 in grill-domain, module boundaries should respect context
 boundaries. A module that spans two bounded contexts is a smell —
 surface it and resolve it before accepting the module shape.
@@ -153,13 +153,13 @@ files with complex interdependencies.
 
 ## During the session
 
-### Add to CONTEXT.md for structural vocabulary only
+### Add to GLOSSARY.md for structural vocabulary only
 
 If structural or technical terms emerge that are specific to this
 project's architecture — terms that will recur in every session
 and that an agent needs to understand to navigate the codebase —
-add them to CONTEXT.md using CONTEXT-FORMAT.md from mattpocock/skills
-(skills/engineering/grill-with-docs/CONTEXT-FORMAT.md).
+add them to GLOSSARY.md using GLOSSARY-FORMAT.md from mattpocock/skills
+(skills/engineering/domain-modeling/GLOSSARY-FORMAT.md).
 
 Do not add general programming concepts. Do not duplicate domain
 vocabulary already established in grill-domain. Only add terms
@@ -178,7 +178,7 @@ Apply the three-condition filter strictly:
    were rejected for specific reasons
 
 Use ADR-FORMAT.md from mattpocock/skills
-(skills/engineering/grill-with-docs/ADR-FORMAT.md). Record the
+(skills/engineering/domain-modeling/ADR-FORMAT.md). Record the
 rejected alternatives — they are often more valuable than the
 choice itself, because they prevent the same conversation from
 recurring in every future session.
@@ -203,14 +203,14 @@ When all four areas are resolved and shared understanding is reached,
 produce the initial modules.md using [MODULES-FORMAT.md].
 
 modules.md at this stage describes proposed module shapes — the
-interfaces and ownership that the AX PRD will implement. All entries
+interfaces and ownership that the AX spec will implement. All entries
 should be marked status: proposed until the AX implementation cycle
 closes and byamabe-update-modules reconciles them against the actual
 code.
 
-Commit CONTEXT.md updates and any ADRs before closing the session.
+Commit GLOSSARY.md updates and any ADRs before closing the session.
 
-Remind the user that the next step is to-prd from mattpocock/skills,
+Remind the user that the next step is to-spec from mattpocock/skills,
 scoped to the AX foundation: feedback loops, technology scaffolding,
-initial module skeleton, and test harness. This is the only PRD
+initial module skeleton, and test harness. This is the only spec
 that is not about a user-facing feature.

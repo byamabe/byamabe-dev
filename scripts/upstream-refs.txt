@@ -1,0 +1,23 @@
+# Every mattpocock/skills name or file that byamabe-dev depends on.
+# scripts/check-upstream-refs.sh fails if a skill here references an
+# upstream skill or file that is not listed, or if a listed one does
+# not exist at the ref pinned in upstream.lock.
+#
+# skill:<name>   a skill directory under skills/<bucket>/<name>/SKILL.md
+# file:<path>    a file path relative to the upstream repo root
+
+skill:setup-matt-pocock-skills
+skill:grill-with-docs
+skill:domain-modeling
+skill:to-spec
+skill:to-tickets
+skill:implement
+skill:implement-spec
+skill:tdd
+skill:code-review
+skill:improve-codebase-architecture
+skill:handoff
+skill:setup-pre-commit
+
+file:skills/engineering/domain-modeling/GLOSSARY-FORMAT.md
+file:skills/engineering/domain-modeling/ADR-FORMAT.md

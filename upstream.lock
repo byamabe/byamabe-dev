@@ -1,0 +1,4 @@
+# Upstream skill set these skills are tested against.
+# Bump `ref` only after scripts/check-upstream-refs.sh passes against it.
+repo=https://github.com/mattpocock/skills
+ref=v1.3.2

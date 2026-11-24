@@ -4,8 +4,8 @@ description: >
   Domain modeling session. Grills the developer on the core concepts of
   the product's domain — what they mean precisely, how they relate to
   each other, and where the boundaries between them are. Produces the
-  initial CONTEXT.md seeded with domain vocabulary and entity
-  relationships. CONTEXT-MAP.md if bounded contexts are identified.
+  initial GLOSSARY.md seeded with domain vocabulary and entity
+  relationships. GLOSSARY-MAP.md if bounded contexts are identified.
   Run after grill-product and before grill-ax. No technology,
   no implementation, no module design belongs here.
 disable-model-invocation: true
@@ -41,7 +41,7 @@ one. For each term:
 Push back on implementation artifacts. If a term only makes sense
 in the context of how software will handle it — not in the language
 a domain expert would use when talking about their work without any
-software present — it does not belong in CONTEXT.md. Defer it to
+software present — it does not belong in GLOSSARY.md. Defer it to
 grill-ax.
 
 Do not move on until each term has a precise agreed definition and
@@ -75,7 +75,7 @@ thing to the student as it does to the instructor?
 
 If the same term carries different meaning in different parts of the
 domain, propose splitting the domain into bounded contexts with their
-own CONTEXT.md files and a CONTEXT-MAP.md at the root.
+own GLOSSARY.md files and a GLOSSARY-MAP.md at the root.
 
 Do not split contexts eagerly. Most small products have a single
 context. Only split when a term genuinely carries conflicting meaning
@@ -130,14 +130,14 @@ When a relationship or rule is being established, invent a specific
 scenario that probes it. Abstract rules sound plausible until you
 apply them to a real case and find they break.
 
-### Update CONTEXT.md inline
+### Update GLOSSARY.md inline
 
-When a term is resolved, write it to CONTEXT.md immediately using
-the format defined in CONTEXT-FORMAT.md from mattpocock/skills
-(skills/engineering/grill-with-docs/CONTEXT-FORMAT.md). Do not
+When a term is resolved, write it to GLOSSARY.md immediately using
+the format defined in GLOSSARY-FORMAT.md from mattpocock/skills
+(skills/engineering/domain-modeling/GLOSSARY-FORMAT.md). Do not
 batch updates. Capture terms as they are settled.
 
-CONTEXT.md is a glossary only. No implementation details. No
+GLOSSARY.md is a glossary only. No implementation details. No
 schema. No module references. Only concepts that exist in the domain
 independent of any software.
 
@@ -155,7 +155,7 @@ trade-off. Examples that qualify:
   when it could reasonably belong to either
 
 Use the format defined in ADR-FORMAT.md from mattpocock/skills
-(skills/engineering/grill-with-docs/ADR-FORMAT.md). Apply the same
+(skills/engineering/domain-modeling/ADR-FORMAT.md). Apply the same
 three-condition filter as grill-with-docs — do not create ADRs for
 obvious decisions.
 
@@ -169,17 +169,17 @@ are captured, the session is complete.
 
 At this point the following should exist:
 
-CONTEXT.md (using CONTEXT-FORMAT.md from mattpocock/skills) with:
+GLOSSARY.md (using GLOSSARY-FORMAT.md from mattpocock/skills) with:
 - All core domain concepts with precise definitions and aliases
   to avoid
 - Relationships section showing how concepts relate
 - Example dialogue demonstrating the language in use
 - Flagged ambiguities resolved
 
-If bounded contexts were identified, CONTEXT-MAP.md should exist
-pointing to each context's CONTEXT.md.
+If bounded contexts were identified, GLOSSARY-MAP.md should exist
+pointing to each context's GLOSSARY.md.
 
-Do not produce a PRD. Do not produce GitHub issues. Do not make
+Do not produce a spec. Do not produce GitHub issues. Do not make
 any technology recommendations.
 
 Remind the user that the next step is grill-ax — establishing the
